@@ -1,0 +1,130 @@
+<!--
+  Copyright 2013 Álvaro Villalba Navarro
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<script type="text/x-red" data-template-name="group">
+    <div class="form-row" id="node-input-row-stream">
+        <label for="node-input-stream"></label>
+        <input type="text" id="node-input-stream" placeholder="Stream ID">
+    </div>
+        <div class="form-row">
+        <div id="node-input-so-container-div" style="border-radius: 5px; height: 310px; padding: 5px; border: 1px solid #ccc; overflow-y:scroll;">
+        <ol id="node-input-so-container" style=" list-style-type:none; margin: 0;">
+        </ol>
+        </div>
+        <a href="#" class="btn btn-mini" id="node-input-add-so" style="margin-top: 4px;"><i class="icon-plus"></i> Add Service Object</a>
+    </div>
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+<script type="text/x-red" data-help-name="group">
+    <p>This node stablishes an input group of streams for composition.</p>
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('group',{
+        category: 'input',
+        color:"#a6bbcf",
+        defaults: {
+            name: {value:"", required: true},
+            sos: {value:[], required: true},
+            stream: {value:"", required: true}
+        },
+        inputs:0,
+        outputs:1,
+        icon: "arrow-in.png",
+        label: function() {
+            return this.name || this.stream || "group";
+        },
+        labelStyle: function() {
+            return this.name?"node_label_italic":"";
+        },
+        oneditprepare: function(){
+
+            function generateSO(i, so){
+                var container = $('<li/>',{style:"margin:0; padding:8px 0px; border-bottom: 1px solid #ccc;"});
+                var row = $('<div/>').appendTo(container);
+                var row2 = $('<div/>',{style:"padding-top: 5px;"}).appendTo(container);
+                var row3 = $('<div/>',{style:"padding-top: 5px; text-align: right;"}).appendTo(container);
+
+                var soField = $('<span/>').appendTo(row);
+                var idField = $('<input/>',{placeholder:"Service Object ID",class:"node-input-so-id",type:"text",style:"margin-left: 5px; width: 250px;"}).appendTo(soField);
+
+
+                var finalspan = $('<span/>',{style:"float: right; margin-top: 3px;margin-right: 10px;"}).appendTo(row);
+
+                soField.show();
+
+                var deleteButton = $('<a/>',{href:"#",class:"btn btn-mini", style:"margin-left: 5px;"}).appendTo(finalspan);
+                $('<i/>',{class:"icon-remove"}).appendTo(deleteButton);
+
+                deleteButton.click(function() {
+                    container.css({"background":"#fee"});
+                    container.fadeOut(300, function() {
+                        $(this).remove();
+                        $("#node-input-so-container").children().each(function(i) {
+                            $(this).find(".node-input-so-index").html(i+1);
+                        });
+
+                    });
+                });
+
+                $("#node-input-so-container").append(container);
+
+                idField.val(so);
+            }
+
+            $("#node-input-add-so").click(function() {
+                generateSO($("#node-input-so-container").children().length+1,"");
+                $("#node-input-so-container-div").scrollTop($("#node-input-so-container-div").get(0).scrollHeight);
+            });
+
+            for (var i=0;i<this.sos.length;i++) {
+                var so = this.sos[i];
+                generateSO(i+1,so);
+            }
+
+            function customDialogResize(ev,ui) {
+                $("#node-input-so-container-div").css("height",(ui.size.height-260)+"px");
+            };
+
+            $( "#dialog" ).on("dialogresize", customDialogResize);
+            $( "#dialog" ).one("dialogopen", function(ev) {
+                var size = $( "#dialog" ).dialog('option','sizeCache-custom');
+                if (size) {
+                    customDialogResize(null,{size:size});
+                }
+            });
+            $( "#dialog" ).one("dialogclose", function(ev,ui) {
+                $( "#dialog" ).off("dialogresize",customDialogResize);
+            });
+        },
+        oneditsave: function() {
+            var sos = $("#node-input-so-container").children();
+            var soset;
+            var node = this;
+            node.sos = [];
+            sos.each(function(i) {
+                var so = $(this);
+                var id = so.find(".node-input-so-id").val();
+
+                node.sos.push(id);
+            });
+        }
+    });
+
+</script>
