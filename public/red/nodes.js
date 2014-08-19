@@ -317,11 +317,27 @@ RED.nodes = (function() {
         return nns;
     }
 
+    function extractStreamSources(stream){
+        //TODO This needs to be cleaner
+        var i;
+        var sources = [];
+        for(i in stream.channels){
+            var cv = stream.channels[i]["current-value"];
+            var j;
+            var ns = cv.split('(')[1].split(')')[0].split(',');
+            for(j in ns){
+                sources.push(ns[j]);
+            }
+        }
+        return sources;
+    }
+
     function importNodes(sos,createNewIds) {
         try {
             var i;
             var n;
             var newSos;
+            var sources = {};
             if (typeof sos === "string") {
                 if (sos === "") {
                     return;
@@ -382,7 +398,7 @@ RED.nodes = (function() {
                 var j;
                 for(j in newGroups){
                     var g = newGroups[j];
-                    var gn = {name:j,component:"group",id:getID(),type:"group",stream:g.stream,sos:g.soIds,z:tabId,wires:[[],[]]}
+                    var gn = {name:j,component:"group",id:getID(),_def:getType("group"),type:"group",stream:g.stream,sos:g.soIds,z:tabId,wires:[[]]}
                     addNode(gn);
                     RED.editor.validateNode(gn);
                     node_map[n.id] = gn;
@@ -396,12 +412,14 @@ RED.nodes = (function() {
                     var k;
                     for(k in s.channels){
                         composite = s.channels[k]["current-value"] !== undefined && s.channels[k]["current-value"] !== null;
+                        break;
                     }
-                    if(!composite) {
-                        sn = {name: j, id: getID(), type: "input", component: "stream", stream: s.stream, sos: g.soIds, z: tabId, wires: [[],[]]};
-                    }
-                    else{
-
+                    sn = {name: j, id: getID(), type: "input",_def:getType("stream"), component: "stream", channels: s.channels, z: tabId, wires: [[]]};
+                    if(composite) {
+                        sn._def=getType("custom");
+                        sn.type="custom";
+                        sources[sn.id] = extractStreamSources(s);
+                        // TODO Set wires
                     }
                     addNode(sn);
                     RED.editor.validateNode(sn);
@@ -420,53 +438,32 @@ RED.nodes = (function() {
                 // TODO: remove workspace in next release+1
                 if (n.type !== "workspace" && n.type !== "tab") {
                     var def = getType(n.type);
-                    if (def && def.category == "config") {
-                        if (!RED.nodes.node(n.id)) {
-                            var configNode = {id:n.id,type:n.type,users:[]};
-                            for (var d in def.defaults) {
-                                if (def.defaults.hasOwnProperty(d)) {
-                                    configNode[d] = n[d];
-                                }
-                            }
-                            configNode.label = def.label;
-                            configNode._def = def;
-                            RED.nodes.add(configNode);
-                        }
-                    } else {
-                        var node = {x:n.x,y:n.y,z:n.z,type:0,wires:n.wires,changed:false};
-                        if (createNewIds) {
-                            node.z = RED.view.getWorkspace();
-                            node.id = getID();
-                        } else {
-                            node.id = n.id;
-                            if (node.z == null || !workspaces[node.z]) {
-                                node.z = RED.view.getWorkspace();
-                            }
-                        }
-                        node.type = n.type;
-                        node._def = def;
-                        if (!node._def) {
-                            node._def = {
-                                color:"#fee",
-                                defaults: {},
-                                label: "unknown: "+n.type,
-                                labelStyle: "node_label_italic",
-                                outputs: n.outputs||n.wires.length
-                            }
-                        }
-                        node.outputs = n.outputs||node._def.outputs;
 
-                        for (var d2 in node._def.defaults) {
-                            if (node._def.defaults.hasOwnProperty(d2)) {
-                                node[d2] = n[d2];
-                            }
+                    var node = {x:n.x,y:n.y,z:n.z,type:0,wires:n.wires,changed:false};
+// TODO HEEEEEEEEEEEEEEEREEEE
+                    node._def = def;
+                    if (!node._def) {
+                        node._def = {
+                            color:"#fee",
+                            defaults: {},
+                            label: "unknown: "+n.type,
+                            labelStyle: "node_label_italic",
+                            outputs: n.outputs||n.wires.length
                         }
-
-                        addNode(node);
-                        RED.editor.validateNode(node);
-                        node_map[n.id] = node;
-                        new_nodes.push(node);
                     }
+                    node.outputs = n.outputs||node._def.outputs;
+
+                    for (var d2 in node._def.defaults) {
+                        if (node._def.defaults.hasOwnProperty(d2)) {
+                            node[d2] = n[d2];
+                        }
+                    }
+
+                    addNode(node);
+                    RED.editor.validateNode(node);
+                    node_map[n.id] = node;
+                    new_nodes.push(node);
+
                 }
             }
             for (i=0;i<new_nodes.length;i++) {
