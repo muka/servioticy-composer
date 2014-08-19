@@ -1,5 +1,6 @@
 /**
- * Copyright 2013 Álvaro Villalba Navarro
+ * Original work Copyright 2013, 2014 IBM Corp.
+ * Modified work Copyright 2014 Barcelona Supercomputing Center (BSC)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-
-/** Based on: https://github.com/node-red/node-red/blob/58c2f5dd3d5754abc3b0c36a409f00a3986b4819/red/nodes/index.js */
 
 var registry = require("./registry");
 var credentials = require("./credentials");

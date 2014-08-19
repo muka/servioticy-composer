@@ -1,5 +1,6 @@
 /**
- * Copyright 2013 Álvaro Villalba Navarro
+ * Original work Copyright 2013, 2014 IBM Corp.
+ * Modified work Copyright 2014 Barcelona Supercomputing Center (BSC)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +15,6 @@
  * limitations under the License.
  **/
 
-/** Based on: https://github.com/node-red/node-red/blob/972e6fc6b324267426e0ed3af6f71969c49002db/public/red/nodes.js */
-
 RED.nodes = (function() {
 
     var node_defs = {};
@@ -24,8 +23,8 @@ RED.nodes = (function() {
     var links = [];
     var defaultWorkspace;
     var workspaces = {};
-    var streams = [];
-    var groups = [];
+    var stream = [];
+    var group = [];
 
     function registerType(nt,def) {
         node_defs[nt] = def;
@@ -42,10 +41,10 @@ RED.nodes = (function() {
     }
 
     function addNode(n) {
-        if (n._def.category == "stream") {
-            streams.push(n);
-        } else if (n._def.category == "groups") {
-            groups.push(n);
+        if (n._def.component == "stream") {
+            stream.push(n);
+        } else if (n._def.component == "group") {
+            group.push(n);
         } else{
             return;
         }
@@ -122,7 +121,7 @@ RED.nodes = (function() {
     }
 
     function addStream(s) {
-        streams.push(s);
+        stream.push(s);
     }
     function getStream(id) {
         return workspaces[id];
@@ -243,33 +242,33 @@ RED.nodes = (function() {
 
     function generateHeader(wires){
         var header = "function(";
-        var i = 0;
-        for(var key in wires){
-            header += wires[key]["name"];
-            header += ",";
-            i++;
+        if(wires !== undefined && wires !== null && wires.length != 0){
+            header += wires[0].source.name;
         }
-        header = header.substring(0, header.length-1);
+        for(var i = 1;i < wires.length;i++){
+            header += ",";
+            header += wires[i].source.name;
+        }
         header += ")";
 
         return header;
     };
 
-    function convertStream(s){
+    function convertToStream(s){
         // TODO Check defaults?
         var stream = {};
         var header = generateHeader(links.filter(function(l){return l.target === s;}));
         stream.channels = {};
-        for (var i=0;i<s.channel.length;i++){
-            stream.channels[s.channel[i].name] = {};
-            stream.channels[s.channel[i].name]['current-value'] = header + "{" + s.channels[i]["current-value"] + "}";
-            stream.channels[s.channel[i].name].type =  s.channels[i].type;
-            stream.channels[s.channel[i].name].unit =  s.channels[i].unit;
+        for (var i=0;i<s.channels.length;i++){
+            stream.channels[s.channels[i].name] = {};
+            stream.channels[s.channels[i].name]['current-value'] = header + "{" + s.channels[i]["current-value"] + "}";
+            stream.channels[s.channels[i].name].type =  s.channels[i].type;
+            stream.channels[s.channels[i].name].unit =  s.channels[i].unit;
         }
         return stream;
     }
 
-    function convertGroup(g){
+    function convertToGroup(g){
         // TODO Check defaults?
         var group = {};
         group.soIds = g.soIds;
@@ -277,18 +276,25 @@ RED.nodes = (function() {
         return group;
     }
 
-    function createSO(){
-        var so = {};
+    function createSos(){
+        var sos = {};
         var i;
-        so.groups = {};
-        for (i in groups) {
-            so.groups[groups[i].name] = convertGroup(groups[i]);
+        for (i in workspaces){
+            sos[i] = {name: workspaces[i].label};
         }
-        so.streams = {};
-        for (i in streams) {
-            so.streams[streams[i].name] = convertStream(streams[i]);
+        for (i in group) {
+            if(sos[group[i].z].groups === undefined){
+                sos[group[i].z].groups = {};
+            }
+            sos[group[i].z].groups[group[i].name] = convertToGroup(group[i]);
         }
-        return so;
+        for (i in stream) {
+            if(sos[stream[i].z].streams === undefined){
+                sos[stream[i].z].streams = {};
+            }
+            sos[stream[i].z].streams[stream[i].name] = convertToStream(stream[i]);
+        }
+        return sos;
     }
     //TODO: rename this (createCompleteNodeSet)
     function createCompleteNodeSet() {
@@ -311,26 +317,26 @@ RED.nodes = (function() {
         return nns;
     }
 
-    function importNodes(newNodesObj,createNewIds) {
+    function importNodes(sos,createNewIds) {
         try {
             var i;
             var n;
-            var newNodes;
-            if (typeof newNodesObj === "string") {
-                if (newNodesObj === "") {
+            var newSos;
+            if (typeof sos === "string") {
+                if (sos === "") {
                     return;
                 }
-                newNodes = JSON.parse(newNodesObj);
+                newSos = JSON.parse(sos);
             } else {
-                newNodes = newNodesObj;
+                newSos = sos;
             }
 
-            if (!$.isArray(newNodes)) {
-                newNodes = [newNodes];
+            if (!$.isArray(newSos)) {
+                newSos = [newSos];
             }
             var unknownTypes = [];
-            for (i=0;i<newNodes.length;i++) {
-                n = newNodes[i];
+            for (i=0;i<newSos.length;i++) {
+                n = newSos[i];
                 // TODO: remove workspace in next release+1
                 if (n.type != "workspace" && n.type != "tab" && !getType(n.type)) {
                     // TODO: get this UI thing out of here! (see below as well)
@@ -341,7 +347,7 @@ RED.nodes = (function() {
                     }
                     if (n.x == null && n.y == null) {
                         // config node - remove it
-                        newNodes.splice(i,1);
+                        newSos.splice(i,1);
                         i--;
                     }
                 }
@@ -352,33 +358,65 @@ RED.nodes = (function() {
                 RED.notify("<strong>Imported unrecognised "+type+":</strong>"+typeList,"error",false,10000);
                 //"DO NOT DEPLOY while in this state.<br/>Either, add missing types to Node-RED, restart and then reload page,<br/>or delete unknown "+n.name+", rewire as required, and then deploy.","error");
             }
+            var node_map = {};
+            var new_nodes = [];
+            var new_links = [];
+            for (i=0;i<newSos.length;i++) {
+                n = newSos[i];
+                var tabId;
+                if(createNewIds){
+                    tabId = getID();
+                }
+                else{
+                    tabId = n.id || getID();
+                }
+                var workspaceIndex = workspaces.length;
 
-            for (i=0;i<newNodes.length;i++) {
-                n = newNodes[i];
-                // TODO: remove workspace in next release+1
-                if (n.type === "workspace" || n.type === "tab") {
-                    if (n.type === "workspace") {
-                        n.type = "tab";
+                var ws = {type:"tab",id:tabId,label: n.name || "Service Object "+workspaceIndex};
+                if (defaultWorkspace == null) {
+                    defaultWorkspace = ws;
+                }
+                addWorkspace(n);
+                RED.view.addWorkspace(n);
+                var newGroups = n.groups || {};
+                var j;
+                for(j in newGroups){
+                    var g = newGroups[j];
+                    var gn = {name:j,component:"group",id:getID(),type:"group",stream:g.stream,sos:g.soIds,z:tabId,wires:[[],[]]}
+                    addNode(gn);
+                    RED.editor.validateNode(gn);
+                    node_map[n.id] = gn;
+                    new_nodes.push(gn);
+                }
+                var newStreams = n.groups || {};
+                for(j in newStreams){
+                    var s = newStreams[j];
+                    var composite;
+                    var sn;
+                    var k;
+                    for(k in s.channels){
+                        composite = s.channels[k]["current-value"] !== undefined && s.channels[k]["current-value"] !== null;
                     }
-                    if (defaultWorkspace == null) {
-                        defaultWorkspace = n;
+                    if(!composite) {
+                        sn = {name: j, id: getID(), type: "input", component: "stream", stream: s.stream, sos: g.soIds, z: tabId, wires: [[],[]]};
                     }
-                    addWorkspace(n);
-                    RED.view.addWorkspace(n);
+                    else{
+
+                    }
+                    addNode(sn);
+                    RED.editor.validateNode(sn);
+                    node_map[n.id] = sn;
+                    new_nodes.push(sn);
                 }
             }
             if (defaultWorkspace == null) {
-                defaultWorkspace = { type:"tab", id:getID(), label:"Sheet 1" };
+                defaultWorkspace = { type:"tab", id:getID(), label:"Service Object 1" };
                 addWorkspace(defaultWorkspace);
                 RED.view.addWorkspace(defaultWorkspace);
             }
 
-            var node_map = {};
-            var new_nodes = [];
-            var new_links = [];
-
-            for (i=0;i<newNodes.length;i++) {
-                n = newNodes[i];
+            for (i=0;i<newSos.length;i++) {
+                n = newSos[i];
                 // TODO: remove workspace in next release+1
                 if (n.type !== "workspace" && n.type !== "tab") {
                     var def = getType(n.type);
@@ -487,7 +525,7 @@ RED.nodes = (function() {
         refreshValidation: refreshValidation,
         getAllFlowNodes: getAllFlowNodes,
         createExportableNodeSet: createExportableNodeSet,
-        createSO: createSO,
+        createSO: createSos,
         createCompleteNodeSet: createCompleteNodeSet,
         id: getID,
         nodes: nodes, // TODO: exposed for d3 vis

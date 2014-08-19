@@ -1,5 +1,6 @@
 /**
- * Copyright 2013 Álvaro Villalba Navarro
+ * Original work Copyright 2013, 2014 IBM Corp.
+ * Modified work Copyright 2014 Barcelona Supercomputing Center (BSC)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-
-/** Based on: https://github.com/node-red/node-red/blob/fb2f307a265a3ee4e090e274c6c8ebdee13b53f1/red/server.js */
 
 var express = require('express');
 var util = require('util');

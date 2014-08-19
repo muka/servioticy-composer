@@ -1,5 +1,5 @@
 <!--
-  Copyright 2013 Álvaro Villalba Navarro
+  Copyright 2014 Barcelona Supercomputing Center (BSC)
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@
 <script type="text/javascript">
     RED.nodes.registerType('group',{
         category: 'input',
+        component: 'group',
         color:"#a6bbcf",
         defaults: {
             name: {value:"", required: true},
@@ -117,12 +118,12 @@
             var sos = $("#node-input-so-container").children();
             var soset;
             var node = this;
-            node.sos = [];
+            node.soIds = [];
+
             sos.each(function(i) {
                 var so = $(this);
                 var id = so.find(".node-input-so-id").val();
-
-                node.sos.push(id);
+                node.soIds.push(id);
             });
         }
     });

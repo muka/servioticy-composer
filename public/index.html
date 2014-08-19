@@ -58,7 +58,7 @@
                     <li class="divider"></li>
                     <li><a id="btn-config-nodes" tabindex="-1" href="#"><i class="icon-th-list"></i> Configuration nodes...</a></li>
                     <li class="divider"></li>
-                    <li class="dropdown-submenu pull-left"><a tabindex="-1" href="#"><i class="icon-th-large"></i> Workspaces</a>
+                    <li class="dropdown-submenu pull-left"><a tabindex="-1" href="#"><i class="icon-th-large"></i> Service Objects</a>
                         <ul id="workspace-menu-list" class="dropdown-menu">
                             <li><a id="btn-workspace-add" tabindex="-1" href="#"><i class="icon-plus"></i> Add</a></li>
                             <li><a id="btn-workspace-edit" tabindex="-1" href="#"><i class="icon-edit"></i> Rename</a></li>
@@ -73,6 +73,9 @@
             </div>
             <div class="btn-group pull-right">
                 <a id="btn-deploy" class="btn action-deploy disabled" href="#"><i id="btn-icn-deploy" class="icon-upload"></i> Deploy</a>
+            </div>
+            <div class="btn-group pull-right">
+                <a id="btn-retrieve" class="btn action-retrieve enabled" href="#">Retrieve</a>
             </div>
         </div>
     </div>
@@ -227,6 +230,14 @@
         <div class="form-row">
             <label for="node-input-workspace-name" ><i class="icon-tag"></i> Name:</label>
             <input type="text" id="node-input-workspace-name">
+        </div>
+    </form>
+</div>
+<div id="node-dialog-retrieve-so" class="hide">
+    <form class="form-horizontal">
+        <div class="form-row">
+            <label for="node-input-so-id" ><i class="icon-tag"></i> ID:</label>
+            <input type="text" id="node-input-so-id">
         </div>
     </form>
 </div>

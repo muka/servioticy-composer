@@ -1,5 +1,6 @@
 /**
- * Copyright 2013 Álvaro Villalba Navarro
+ * Original work Copyright 2013, 2014 IBM Corp.
+ * Modified work Copyright 2014 Barcelona Supercomputing Center (BSC)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-
-/** Based on: https://github.com/node-red/node-red/blob/972e6fc6b324267426e0ed3af6f71969c49002db/public/red/main.js */
 
 var RED = (function() {
 
@@ -77,20 +76,21 @@ var RED = (function() {
                     return;
                 }
             }
-//            var so = RED.nodes.createSO();
-            var nns = RED.nodes.createCompleteNodeSet();
+            var so = RED.nodes.createSO();
 
             $("#btn-icn-deploy").removeClass('icon-upload');
             $("#btn-icn-deploy").addClass('spinner');
             RED.view.dirty(false);
 
             $.ajax({
-                url:"flows",
+                url:"http://192.168.56.101:8080/",
                 type: "POST",
-                data: JSON.stringify(nns),
-                contentType: "application/json; charset=utf-8"
+                data: JSON.stringify(so),
+                contentType: "application/json; charset=utf-8",
+                headers: {Authorization: 'M2JhMmRkMDEtZTAwZi00ODM5LThmYTktOGU4NjNjYmJmMjc5N2UzNzYwNWItNTc2ZS00MGVlLTgyNTMtNTgzMmJhZjA0ZmIy'}
             }).done(function(data,textStatus,xhr) {
-                RED.notify("Successfully deployed","success");
+                RED.notify("Successfully deployed: " + data.id,"success");
+                RED.editor.
                 RED.nodes.eachNode(function(node) {
                     if (node.changed) {
                         node.dirty = true;
@@ -160,7 +160,10 @@ var RED = (function() {
             $(".palette-spinner").hide();
             $(".palette-scroll").show();
             $("#palette-search").show();
-            loadFlows();
+            RED.nodes.import([]);
+            RED.view.dirty(false);
+            RED.view.redraw();
+//            loadFlows();
         });
     }
 

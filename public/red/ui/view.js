@@ -1,5 +1,6 @@
 /**
- * Copyright 2013, 2014 IBM Corp.
+ * Original work Copyright 2013, 2014 IBM Corp.
+ * Modified work Copyright 2014 Barcelona Supercomputing Center (BSC)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -300,9 +301,9 @@ RED.view = (function() {
         var tabId = RED.nodes.id();
         do {
             workspaceIndex += 1;
-        } while($("#workspace-tabs a[title='Sheet "+workspaceIndex+"']").size() !== 0);
+        } while($("#workspace-tabs a[title='Service Object "+workspaceIndex+"']").size() !== 0);
 
-        var ws = {type:"tab",id:tabId,label:"Sheet "+workspaceIndex};
+        var ws = {type:"tab",id:tabId,label:"Service Object "+workspaceIndex};
         RED.nodes.addWorkspace(ws);
         workspace_tabs.addTab(ws);
         workspace_tabs.activateTab(tabId);
@@ -317,6 +318,7 @@ RED.view = (function() {
     $('#btn-workspace-delete').on("click",function() {
         deleteWorkspace(activeWorkspace);
     });
+    $('#btn-retrieve').on("click", showRetrieveSODialog);
 
     function deleteWorkspace(id) {
         if (workspace_tabs.count() == 1) {
@@ -1524,7 +1526,7 @@ RED.view = (function() {
         modal: true,
         autoOpen: false,
         width: 500,
-        title: "Rename sheet",
+        title: "Rename service object",
         buttons: [
             {
                 class: 'leftButton',
@@ -1598,6 +1600,39 @@ RED.view = (function() {
             RED.keyboard.enable();
         }
 
+    });
+
+    function showRetrieveSODialog() {
+        $( "#node-dialog-retrieve-so" ).dialog("open");
+
+    }
+
+    $( "#node-dialog-retrieve-so form" ).submit(function(e) { e.preventDefault();});
+    $( "#node-dialog-retrieve-so" ).dialog({
+        modal: true,
+        autoOpen: false,
+        width: 500,
+        title: "Retrieve service object",
+        buttons: [
+            {
+                text: "Ok",
+                click: function() {
+                    $( this ).dialog( "close" );
+                }
+            },
+            {
+                text: "Cancel",
+                click: function() {
+                    $( this ).dialog( "close" );
+                }
+            }
+        ],
+        open: function(e) {
+            RED.keyboard.disable();
+        },
+        close: function(e) {
+            RED.keyboard.enable();
+        }
     });
 
     return {

@@ -14,7 +14,7 @@
         "test": "./node_modules/.bin/grunt"
     },
     "contributors": [
-        {"name": "Álvaro Villalba"}
+        {"name": "Álvaro Villalba"},
         {"name": "Nick O'Leary"},
         {"name": "Dave Conway-Jones"}
     ],

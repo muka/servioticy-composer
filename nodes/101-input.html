@@ -14,7 +14,7 @@
   limitations under the License.
 -->
 
-<script type="text/x-red" data-template-name="custom">
+<script type="text/x-red" data-template-name="input">
 
     <div class="form-row">
         <div id="node-input-channel-container-div" style="border-radius: 5px; height: 310px; padding: 5px; border: 1px solid #ccc; overflow-y:scroll;">
@@ -29,24 +29,24 @@
         <input type="text" id="node-input-name" placeholder="Name">
     </div>
 </script>
-<script type="text/x-red" data-help-name="custom">
-    <p>This node creates a custom stream in the composition.</p>
+<script type="text/x-red" data-help-name="input">
+    <p>This node creates a input stream in the composition.</p>
 </script>
 
 <script type="text/javascript">
-    RED.nodes.registerType('custom',{
-        category: 'function',
+    RED.nodes.registerType('input',{
+        category: 'input',
         component: 'stream',
         color:"#fdd0a2",
         defaults: {
             name: {value:"", required: true},
             channels: {value:[], required: true}
         },
-        inputs:1,
+        inputs:0,
         outputs:1,
-        icon: "function.png",
+        icon: "arrow-in.png",
         label: function() {
-                return this.name ||"custom";
+                return this.name ||"input";
         },
         labelStyle: function() {
             return this.name?"node_label_italic":"";
@@ -74,7 +74,6 @@
                 for (var d in types) {
                     selectField.append($("<option></option>").val(types[d]).text(types[d]));
                 }
-                var functionField = $('<textarea/>',{placeholder:"JavaScript function body",class:"node-input-channel-function",style:"margin-left: 5px; height: 100px; width: 360px;"}).appendTo(row2);
                 var unitField = $('<input/>',{placeholder:"Unit",class:"node-input-channel-unit",type:"text",style:"margin-left: 5px; width: 120px;"}).appendTo(channelField);
 
                 var finalspan = $('<span/>',{style:"float: right; margin-top: 3px;margin-right: 10px;"}).appendTo(row);
@@ -107,7 +106,6 @@
                 $("#node-input-channel-container").append(container);
 
                 selectField.find("option").filter(function() {return $(this).val() == channel.type;}).attr('selected',true);
-                functionField.val(channel["current-value"]);
                 unitField.val(channel.unit);
                 nameField.val(channel.name);
                 selectField.change();
@@ -123,19 +121,19 @@
                 generateChannel(i+1,channel);
             }
 
-            function customDialogResize(ev,ui) {
+            function inputDialogResize(ev,ui) {
                 $("#node-input-channel-container-div").css("height",(ui.size.height-260)+"px");
             };
 
-            $( "#dialog" ).on("dialogresize", customDialogResize);
+            $( "#dialog" ).on("dialogresize", inputDialogResize);
             $( "#dialog" ).one("dialogopen", function(ev) {
-                var size = $( "#dialog" ).dialog('option','sizeCache-custom');
+                var size = $( "#dialog" ).dialog('option','sizeCache-input');
                 if (size) {
-                    customDialogResize(null,{size:size});
+                    inputDialogResize(null,{size:size});
                 }
             });
             $( "#dialog" ).one("dialogclose", function(ev,ui) {
-                $( "#dialog" ).off("dialogresize",customDialogResize);
+                $( "#dialog" ).off("dialogresize",inputDialogResize);
             });
         },
         oneditsave: function() {
@@ -147,10 +145,9 @@
                 var channel = $(this);
                 var type = channel.find("select option:selected").val();
                 var unit = channel.find(".node-input-channel-unit").val();
-                var fun = channel.find(".node-input-channel-function").val();
                 var name = channel.find(".node-input-channel-name").val();
 
-                node.channels.push({"name":name,"type":type,"unit":unit,"current-value":fun});
+                node.channels.push({"name":name,"type":type,"unit":unit});
             });
         }
     });
