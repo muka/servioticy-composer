@@ -14,7 +14,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
+if (!Array.prototype.findIndex) {
+    Object.defineProperty(Array.prototype, 'findIndex', {
+        enumerable: false,
+        configurable: true,
+        writable: true,
+        value: function(predicate) {
+            if (this == null) {
+                throw new TypeError('Array.prototype.find called on null or undefined');
+            }
+            if (typeof predicate !== 'function') {
+                throw new TypeError('predicate must be a function');
+            }
+            var list = Object(this);
+            var length = list.length >>> 0;
+            var thisArg = arguments[1];
+            var value;
 
+            for (var i = 0; i < length; i++) {
+                if (i in list) {
+                    value = list[i];
+                    if (predicate.call(thisArg, value, i, list)) {
+                        return i;
+                    }
+                }
+            }
+            return -1;
+        }
+    });
+}
 RED.nodes = (function() {
 
     var node_defs = {};
@@ -25,8 +53,8 @@ RED.nodes = (function() {
     var workspaces = {};
     var streams = [];
     var groups = [];
-    var xIndex = 1;
-    var yIndex = 1;
+    var xIndex = 0;
+    var yIndex = 0;
     function registerType(nt,def) {
         node_defs[nt] = def;
         // TODO: too tightly coupled into palette UI
@@ -262,7 +290,9 @@ RED.nodes = (function() {
         stream.channels = {};
         for (var i=0;i<s.channels.length;i++){
             stream.channels[s.channels[i].name] = {};
-            stream.channels[s.channels[i].name]['current-value'] = header + "{" + s.channels[i]["current-value"] + "}";
+            if(s.channels[i]["current-value"] !== undefined) {
+                stream.channels[s.channels[i].name]['current-value'] = header + "{" + s.channels[i]["current-value"] + "}";
+            }
             stream.channels[s.channels[i].name].type =  s.channels[i].type;
             stream.channels[s.channels[i].name].unit =  s.channels[i].unit;
         }
@@ -327,16 +357,46 @@ RED.nodes = (function() {
             var j;
             var ns = cv.split('(')[1].split(')')[0].split(',');
             for(j in ns){
-                sources.push(ns[j]);
+                var existing = sources.filter(function(s){
+                    return ns[j] == s;
+                });
+                if(existing.length == 0) {
+                    sources.push(ns[j]);
+                }
             }
         }
         return sources;
     }
 
     function getCoordinates(){
-        var px = 300;
-        xIndex++;
-        return {x:xIndex*px, y:yIndex*px}
+        var xpx = 300;
+        var ypx = 100;
+        var marginy = 75;
+        var marginx = 175;
+        var coords = {x:xIndex*xpx+marginx, y:yIndex*ypx+marginy};
+        if(yIndex >= 2*xIndex-1){
+            yIndex = 0;
+            xIndex++;
+        }else{
+            yIndex++;
+        }
+
+        return coords
+    }
+
+    function restartCoordinates(){
+        xIndex = 0;
+        yIndex = 0;
+    }
+
+    function importFunction(func){
+        var body_parts = func.split('{')[1].split('}');
+        var body = "";
+        var i;
+        for(i =0; i<body_parts.length-1;i++){
+            body += body_parts[i];
+        }
+        return body;
     }
 
     function importNodes(sos,createNewIds) {
@@ -359,8 +419,11 @@ RED.nodes = (function() {
             }
             var node_map = {};
             var new_nodes = [];
+            var new_groups = [];
+            var new_streams =[];
             var new_links = [];
             for (i=0;i<newSos.length;i++) {
+                restartCoordinates();
                 n = newSos[i];
                 var tabId;
                 if(createNewIds){
@@ -390,10 +453,7 @@ RED.nodes = (function() {
                     var gn = {name:j,component:"group",id:getID(),_def:getType("group"),type:"group",changed:false,stream:g.stream,sos:g.soIds,x:coor.x,y:coor.y,z:tabId,wires:[[]]};
                     gn._def=getType("group")
                     gn.outputs = gn._def.outputs;
-                    addNode(gn);
-                    RED.editor.validateNode(gn);
-                    node_map[n.id] = gn;
-                    new_nodes.push(gn);
+                    new_groups.push(gn);
                 }
                 var newStreams = n.streams || {};
                 for(j in newStreams){
@@ -402,24 +462,32 @@ RED.nodes = (function() {
                     var sn;
                     var k;
                     var coor = getCoordinates();
+                    var channels = []
                     for(k in s.channels){
                         composite = s.channels[k]["current-value"] !== undefined && s.channels[k]["current-value"] !== null;
                         break;
                     }
-                    sn = {name: j, id: getID(), type: "input", component: "stream",changed:false,channels: s.channels,x:coor.x,y:coor.y,z: tabId, wires: [[]]};
-                    sn._def=getType("input")
+                    for(k in s.channels){
+                        channels.push({name: k,unit:s.channels[k].unit,type:s.channels[k].type});
+                        channels[channels.length-1].name = k;
+                        if(composite){
+                            channels[channels.length-1]["current-value"] = importFunction(s.channels[k]["current-value"]);
+                        }
+                    }
+                    sn = {name: j, id: getID(), type: "input", component: "stream",changed:false,channels:channels,x:coor.x,y:coor.y,z: tabId, wires: [[]]};
+                    sn._def=getType("input");
                     sn.outputs = sn._def.outputs;
                     if(composite) {
                         sn._def=getType("custom");
                         sn.outputs = sn._def.outputs;
                         sn.type="custom";
-                        sources[sn.id] = extractStreamSources(s);
+                        if(sources[sn.z] === undefined){
+                            sources[sn.z] = {};
+                        }
+                        sources[sn.z][sn.id] = extractStreamSources(s);
                         // TODO Set wires
                     }
-                    addNode(sn);
-                    RED.editor.validateNode(sn);
-                    node_map[n.id] = sn;
-                    new_nodes.push(sn);
+                    new_streams.push(sn);
                 }
             }
             if (defaultWorkspace == null) {
@@ -427,26 +495,47 @@ RED.nodes = (function() {
                 addWorkspace(defaultWorkspace);
                 RED.view.addWorkspace(defaultWorkspace);
             }
-// TODO This needs to be done before adding the node.
             for(i in sources){
                 for(j in sources[i]){
-                    var nname = sources[i][j];
-                    var n = streams.filter(function(s){
-                        return s.name == nname;
-                    });
-                    if(n.length == 0 ){
-                        n = groups.filter(function(g){
-                            return g.name == nname;
+                    for(k in sources[i][j]){
+                        var nname = sources[i][j][k];
+                        var n = new_streams.findIndex(function(s, index, array){
+                            return s.name == nname && s.z == i;
                         });
+                        if(n == -1){
+                            n = new_groups.findIndex(function(g){
+                                return g.name == nname;
+                            });
+                            if(n == -1){
+                                continue;
+                            }
+                            if (new_groups[n].wires === undefined){
+                                new_groups[n].wires = [[]];
+                            }
+                            new_groups[n].wires[0].push(j);
+                        }
+                        else{
+                            if (new_streams[n].wires === undefined){
+                                new_streams[n].wires = [[]];
+                            }
+                            new_streams[n].wires[0].push(j);
+                        }
                     }
-                    if(n.length == 0 ){
-                        continue;
-                    }
-                    if(n[0].wires === undefined){
-                        n[0].wires = [[]];
-                    }
-                    n[0].wires[0].push(i);
                 }
+            }
+            for (i=0;i<new_groups.length;i++) {
+                var gn = new_groups[i];
+                addNode(gn);
+                RED.editor.validateNode(gn);
+                node_map[gn.id] = gn;
+                new_nodes.push(gn);
+            }
+            for (i=0;i<new_streams.length;i++) {
+                var sn = new_streams[i];
+                addNode(sn);
+                RED.editor.validateNode(sn);
+                node_map[sn.id] = sn;
+                new_nodes.push(sn);
             }
             for (i=0;i<new_nodes.length;i++) {
                 n = new_nodes[i];
@@ -504,7 +593,7 @@ RED.nodes = (function() {
         refreshValidation: refreshValidation,
         getAllFlowNodes: getAllFlowNodes,
         createExportableNodeSet: createExportableNodeSet,
-        createSO: createSos,
+        createSOs: createSos,
         createCompleteNodeSet: createCompleteNodeSet,
         id: getID,
         nodes: nodes, // TODO: exposed for d3 vis

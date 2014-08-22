@@ -76,49 +76,42 @@ var RED = (function() {
                     return;
                 }
             }
-            var so = RED.nodes.createSO();
+            var sos = RED.nodes.createSOs();
 
             $("#btn-icn-deploy").removeClass('icon-upload');
             $("#btn-icn-deploy").addClass('spinner');
             RED.view.dirty(false);
 
-            $.ajax({
-                url:"http://192.168.56.101:8080/",
-                type: "POST",
-                data: JSON.stringify(so),
-                contentType: "application/json; charset=utf-8",
-                headers: {Authorization: 'M2JhMmRkMDEtZTAwZi00ODM5LThmYTktOGU4NjNjYmJmMjc5N2UzNzYwNWItNTc2ZS00MGVlLTgyNTMtNTgzMmJhZjA0ZmIy'}
-            }).done(function(data,textStatus,xhr) {
-                RED.notify("Successfully deployed: " + data.id,"success");
-                RED.editor.
-                RED.nodes.eachNode(function(node) {
-                    if (node.changed) {
-                        node.dirty = true;
-                        node.changed = false;
+            for(soid in sos){
+                $.ajax({
+                    url:"http://192.168.56.101:8080/",
+                    type: "POST",
+                    data: JSON.stringify(sos[soid]),
+                    contentType: "application/json; charset=utf-8",
+                    headers: {Authorization: 'M2JhMmRkMDEtZTAwZi00ODM5LThmYTktOGU4NjNjYmJmMjc5N2UzNzYwNWItNTc2ZS00MGVlLTgyNTMtNTgzMmJhZjA0ZmIy'}
+                }).done(function(data,textStatus,xhr) {
+                    RED.notify("Successfully deployed: " + data.id,"success");
+                    RED.nodes.eachNode(function(node) {
+                        if (node.changed && node.z == soid) {
+                            node.dirty = true;
+                            node.changed = false;
+                        }
+                    });
+                    // Once deployed, cannot undo back to a clean state
+                    RED.history.markAllDirty();
+                    RED.view.redraw();
+                }).fail(function(xhr,textStatus,err) {
+                    RED.view.dirty(true);
+                    if (xhr.responseText) {
+                        RED.notify("<strong>Error</strong>: "+xhr.responseText,"error");
+                    } else {
+                        RED.notify("<strong>Error</strong>: no response from server","error");
                     }
-                    if(node.credentials) {
-                        delete node.credentials;
-                    }
+                }).always(function() {
+                    $("#btn-icn-deploy").removeClass('spinner');
+                    $("#btn-icn-deploy").addClass('icon-upload');
                 });
-                RED.nodes.eachConfig(function (confNode) {
-                    if (confNode.credentials) {
-                        delete confNode.credentials;
-                    }
-                });
-                // Once deployed, cannot undo back to a clean state
-                RED.history.markAllDirty();
-                RED.view.redraw();
-            }).fail(function(xhr,textStatus,err) {
-                RED.view.dirty(true);
-                if (xhr.responseText) {
-                    RED.notify("<strong>Error</strong>: "+xhr.responseText,"error");
-                } else {
-                    RED.notify("<strong>Error</strong>: no response from server","error");
-                }
-            }).always(function() {
-                $("#btn-icn-deploy").removeClass('spinner');
-                $("#btn-icn-deploy").addClass('icon-upload');
-            });
+            }
         }
     }
 
