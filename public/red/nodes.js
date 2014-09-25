@@ -399,6 +399,12 @@ RED.nodes = (function() {
         return body;
     }
 
+    function normalizeType(type){
+        type = type.trim().toLowerCase();
+        type = type.charAt(0).toUpperCase() + type.slice(1);
+        return type;
+    }
+
     function importNodes(sos,createNewIds) {
         try {
             var i;
@@ -468,7 +474,7 @@ RED.nodes = (function() {
                         break;
                     }
                     for(k in s.channels){
-                        channels.push({name: k,unit:s.channels[k].unit,type:s.channels[k].type});
+                        channels.push({name: k,unit:s.channels[k].unit,type:normalizeType(s.channels[k].type)});
                         channels[channels.length-1].name = k;
                         if(composite){
                             channels[channels.length-1]["current-value"] = importFunction(s.channels[k]["current-value"]);
