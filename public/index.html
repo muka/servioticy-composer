@@ -6,7 +6,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 
 <!--
-  Copyright 2013 IBM Corp.
+  Original work Copyright 2013 IBM Corp.
+  Modified work Copyright 2014 Barcelona Supercomputing Center (BSC)
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -61,7 +62,7 @@
                     <li class="dropdown-submenu pull-left"><a tabindex="-1" href="#"><i class="icon-th-large"></i> Service Objects</a>
                         <ul id="workspace-menu-list" class="dropdown-menu">
                             <li><a id="btn-workspace-add" tabindex="-1" href="#"><i class="icon-plus"></i> Add</a></li>
-                            <li><a id="btn-workspace-edit" tabindex="-1" href="#"><i class="icon-edit"></i> Rename</a></li>
+                            <li><a id="btn-workspace-edit" tabindex="-1" href="#"><i class="icon-edit"></i> Edit</a></li>
                             <li><a id="btn-workspace-delete" tabindex="-1" href="#"><i class="icon-minus"></i> Delete</a></li>
                             <li class="divider"></li>
                         </ul>
@@ -74,9 +75,9 @@
             <div class="btn-group pull-right">
                 <a id="btn-deploy" class="btn action-deploy disabled" href="#"><i id="btn-icn-deploy" class="icon-upload"></i> Deploy</a>
             </div>
-            <div class="btn-group pull-right">
-                <a id="btn-retrieve" class="btn action-retrieve enabled" href="#">Retrieve</a>
-            </div>
+            <!--<div class="btn-group pull-right">-->
+                <!--<a id="btn-retrieve" class="btn action-retrieve enabled" href="#">Retrieve</a>-->
+            <!--</div>-->
         </div>
     </div>
 </div>
@@ -230,6 +231,10 @@
         <div class="form-row">
             <label for="node-input-workspace-name" ><i class="icon-tag"></i> Name:</label>
             <input type="text" id="node-input-workspace-name">
+        </div>
+        <div class="form-row">
+            <label for="node-input-workspace-name" >API Key:</label>
+            <input type="text" id="node-input-workspace-key">
         </div>
     </form>
 </div>

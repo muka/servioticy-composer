@@ -83,12 +83,14 @@ var RED = (function() {
             RED.view.dirty(false);
 
             for(soid in sos){
+                key = sos[soid].key;
+                delete sos[soid].key;
                 $.ajax({
-                    url:"http://192.168.56.101:8080/",
+                    url:"http://api.servioticy.com/",
                     type: "POST",
                     data: JSON.stringify(sos[soid]),
                     contentType: "application/json; charset=utf-8",
-                    headers: {Authorization: 'M2JhMmRkMDEtZTAwZi00ODM5LThmYTktOGU4NjNjYmJmMjc5N2UzNzYwNWItNTc2ZS00MGVlLTgyNTMtNTgzMmJhZjA0ZmIy'}
+                    headers: {Authorization: key}
                 }).done(function(data,textStatus,xhr) {
                     RED.notify("Successfully deployed: " + data.id,"success");
                     RED.nodes.eachNode(function(node) {

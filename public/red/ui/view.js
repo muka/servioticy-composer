@@ -1526,7 +1526,7 @@ RED.view = (function() {
         modal: true,
         autoOpen: false,
         width: 500,
-        title: "Rename service object",
+        title: "Edit service object",
         buttons: [
             {
                 class: 'leftButton',
@@ -1542,8 +1542,10 @@ RED.view = (function() {
                 click: function() {
                     var workspace = $(this).dialog('option','workspace');
                     var label = $( "#node-input-workspace-name" ).val();
-                    if (workspace.label != label) {
+                    var key = $( "#node-input-workspace-key" ).val();
+                    if (workspace.label != label || workspace.key != key) {
                         workspace.label = label;
+                        workspace.key = key
                         var link = $("#workspace-tabs a[href='#"+workspace.id+"']");
                         link.attr("title",label);
                         link.text(label);
