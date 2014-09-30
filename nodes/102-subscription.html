@@ -1,0 +1,75 @@
+<!--
+  Copyright 2014 Barcelona Supercomputing Center (BSC)
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<script type="text/x-red" data-template-name="subscription">
+    <div class="form-row" id="node-input-row-stream">
+        <label for="node-input-stream"></label>
+        <input type="text" id="node-input-stream" placeholder="Stream ID">
+        <label for="node-input-so"></label>
+        <input type="text" id="node-input-so" placeholder="Service object ID">
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+<script type="text/x-red" data-help-name="subscription">
+    <p>Subscription to one or several existing streams. Its output is treated as a single stream.</p>
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('subscription',{
+        category: 'input',
+        component: 'group',
+        color: "#a6bbcf",
+        defaults: {
+            name: {value:"", required: true},
+            soIds: {value:[], required: true},
+            stream: {value:"", required: true}
+        },
+        inputs:0,
+        outputs:1,
+        icon: "arrow-in.png",
+        label: function() {
+            return this.name || this.stream || "subscription";
+        },
+        labelStyle: function() {
+            return this.name?"node_label_italic":"";
+        },
+        oneditprepare: function(){
+
+            function customDialogResize(ev,ui) {
+                $("#node-input-so-container-div").css("height",(ui.size.height-260)+"px");
+            };
+
+            $( "#dialog" ).on("dialogresize", customDialogResize);
+            $( "#dialog" ).one("dialogopen", function(ev) {
+                var size = $( "#dialog" ).dialog('option','sizeCache-custom');
+                if (size) {
+                    customDialogResize(null,{size:size});
+                }
+            });
+            $( "#dialog" ).one("dialogclose", function(ev,ui) {
+                $( "#dialog" ).off("dialogresize",customDialogResize);
+            });
+        },
+        oneditsave: function() {
+            var node = this;
+            node.soIds = [];
+            node.soIds.push($("#node-input-so").val());
+        }
+    });
+
+</script>

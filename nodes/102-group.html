@@ -42,7 +42,7 @@
         color: "#a6bbcf",
         defaults: {
             name: {value:"", required: true},
-            sos: {value:[], required: true},
+            soIds: {value:[], required: true},
             stream: {value:"", required: true}
         },
         inputs:0,
@@ -94,8 +94,8 @@
                 $("#node-input-so-container-div").scrollTop($("#node-input-so-container-div").get(0).scrollHeight);
             });
 
-            for (var i=0;i<this.sos.length;i++) {
-                var so = this.sos[i];
+            for (var i=0;i<this.soIds.length;i++) {
+                var so = this.soIds[i];
                 generateSO(i+1,so);
             }
 
@@ -116,7 +116,6 @@
         },
         oneditsave: function() {
             var sos = $("#node-input-so-container").children();
-            var soset;
             var node = this;
             node.soIds = [];
 
