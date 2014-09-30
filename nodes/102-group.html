@@ -32,14 +32,14 @@
     </div>
 </script>
 <script type="text/x-red" data-help-name="group">
-    <p>This node stablishes an input group of streams for composition.</p>
+    <p>Subscription to one or several existing streams. Its output is treated as a single stream.</p>
 </script>
 
 <script type="text/javascript">
     RED.nodes.registerType('group',{
         category: 'input',
         component: 'group',
-        color:"#a6bbcf",
+        color: "#a6bbcf",
         defaults: {
             name: {value:"", required: true},
             sos: {value:[], required: true},

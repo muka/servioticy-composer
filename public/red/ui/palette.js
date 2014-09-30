@@ -1,5 +1,6 @@
 /**
- * Copyright 2013 IBM Corp.
+ * Original work Copyright 2013 IBM Corp.
+ * Modified work Copyright 2014 Barcelona Supercomputing Center (BSC)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
- 
+
 RED.palette = (function() {
 
     var exclusion = ['config','unknown','deprecated'];
-    var core = ['input', 'output', 'function', 'social', 'storage', 'analysis', 'advanced'];
+    var core = ['input', 'composition'];
     
     function createCategoryContainer(category){
 
