@@ -311,7 +311,7 @@ RED.nodes = (function() {
         var sos = {};
         var i;
         for (i in workspaces){
-            sos[i] = {name: workspaces[i].label, key: workspaces[i].key, version: "0.2"};
+            sos[i] = {name: workspaces[i].label, key: workspaces[i].key, version: "0.2.0"};
         }
         for (i in groups) {
             if(sos[groups[i].z].groups === undefined){
