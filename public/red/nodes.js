@@ -456,7 +456,7 @@ RED.nodes = (function() {
                 for(j in newGroups){
                     var g = newGroups[j];
                     var coor = getCoordinates();
-                    var gn = {name:j,component:"group",id:getID(),_def:getType("group"),type:"group",changed:false,stream:g.stream,sos:g.soIds,x:coor.x,y:coor.y,z:tabId,wires:[[]]};
+                    var gn = {name:j,component:"group",id:getID(),_def:getType("group"),type:"group",changed:false,stream:g.stream,soIds:g.soIds,x:coor.x,y:coor.y,z:tabId,wires:[[]]};
                     gn._def=getType("group")
                     gn.outputs = gn._def.outputs;
                     new_groups.push(gn);
@@ -480,8 +480,8 @@ RED.nodes = (function() {
                             channels[channels.length-1]["current-value"] = importFunction(s.channels[k]["current-value"]);
                         }
                     }
-                    sn = {name: j, id: getID(), type: "input", component: "stream",changed:false,channels:channels,x:coor.x,y:coor.y,z: tabId, wires: [[]]};
-                    sn._def=getType("input");
+                    sn = {name: j, id: getID(), type: "object", component: "stream",changed:false,channels:channels,x:coor.x,y:coor.y,z: tabId, wires: [[]]};
+                    sn._def=getType("object");
                     sn.outputs = sn._def.outputs;
                     if(composite) {
                         sn._def=getType("custom");
