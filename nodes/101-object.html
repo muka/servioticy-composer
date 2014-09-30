@@ -17,16 +17,16 @@
 <script type="text/x-red" data-template-name="object">
 
     <div class="form-row">
-        <div id="node-object-channel-container-div" style="border-radius: 5px; height: 310px; padding: 5px; border: 1px solid #ccc; overflow-y:scroll;">
-        <ol id="node-object-channel-container" style=" list-style-type:none; margin: 0;">
+        <div id="node-input-channel-container-div" style="border-radius: 5px; height: 310px; padding: 5px; border: 1px solid #ccc; overflow-y:scroll;">
+        <ol id="node-input-channel-container" style=" list-style-type:none; margin: 0;">
         </ol>
         </div>
-        <a href="#" class="btn btn-mini" id="node-object-add-channel" style="margin-top: 4px;"><i class="icon-plus"></i> Add channel</a>
+        <a href="#" class="btn btn-mini" id="node-input-add-channel" style="margin-top: 4px;"><i class="icon-plus"></i> Add channel</a>
     </div>
 
     <div class="form-row">
-        <label for="node-object-name"><i class="icon-tag"></i> Name</label>
-        <input type="text" id="node-object-name" placeholder="Name">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
     </div>
 </script>
 <script type="text/x-red" data-help-name="object">
@@ -69,12 +69,12 @@
                 var row3 = $('<div/>',{style:"padding-top: 5px; text-align: right;"}).appendTo(container);
 
                 var channelField = $('<span/>').appendTo(row);
-                var nameField = $('<input/>',{placeholder:"Name",class:"node-object-channel-name",type:"text",style:"margin-left: 5px; width: 120px;"}).appendTo(channelField);
+                var nameField = $('<input/>',{placeholder:"Name",class:"node-input-channel-name",type:"text",style:"margin-left: 5px; width: 120px;"}).appendTo(channelField);
                 var selectField = $('<select/>',{style:"width:95px; margin-left: 5px; text-align: center;"}).appendTo(channelField);
                 for (var d in types) {
                     selectField.append($("<option></option>").val(types[d]).text(types[d]));
                 }
-                var unitField = $('<input/>',{placeholder:"Unit",class:"node-object-channel-unit",type:"text",style:"margin-left: 5px; width: 120px;"}).appendTo(channelField);
+                var unitField = $('<input/>',{placeholder:"Unit",class:"node-input-channel-unit",type:"text",style:"margin-left: 5px; width: 120px;"}).appendTo(channelField);
 
                 var finalspan = $('<span/>',{style:"float: right; margin-top: 3px;margin-right: 10px;"}).appendTo(row);
 
@@ -96,14 +96,14 @@
                     container.css({"background":"#fee"});
                     container.fadeOut(300, function() {
                         $(this).remove();
-                        $("#node-object-channel-container").children().each(function(i) {
-                            $(this).find(".node-object-channel-index").html(i+1);
+                        $("#node-input-channel-container").children().each(function(i) {
+                            $(this).find(".node-input-channel-index").html(i+1);
                         });
 
                     });
                 });
 
-                $("#node-object-channel-container").append(container);
+                $("#node-input-channel-container").append(container);
 
                 selectField.find("option").filter(function() {return $(this).val() == channel.type;}).attr('selected',true);
                 unitField.val(channel.unit);
@@ -111,9 +111,9 @@
                 selectField.change();
             }
 
-            $("#node-object-add-channel").click(function() {
-                generateChannel($("#node-object-channel-container").children().length+1,{name:"",type:"", "current-value":"","unit":""});
-                $("#node-object-channel-container-div").scrollTop($("#node-object-channel-container-div").get(0).scrollHeight);
+            $("#node-input-add-channel").click(function() {
+                generateChannel($("#node-input-channel-container").children().length+1,{name:"",type:"", "current-value":"","unit":""});
+                $("#node-input-channel-container-div").scrollTop($("#node-input-channel-container-div").get(0).scrollHeight);
             });
 
             for (var i=0;i<this.channels.length;i++) {
@@ -122,7 +122,7 @@
             }
 
             function objectDialogResize(ev,ui) {
-                $("#node-object-channel-container-div").css("height",(ui.size.height-260)+"px");
+                $("#node-input-channel-container-div").css("height",(ui.size.height-260)+"px");
             };
 
             $( "#dialog" ).on("dialogresize", objectDialogResize);
@@ -137,15 +137,15 @@
             });
         },
         oneditsave: function() {
-            var channels = $("#node-object-channel-container").children();
+            var channels = $("#node-input-channel-container").children();
             var channelset;
             var node = this;
             node.channels = [];
             channels.each(function(i) {
                 var channel = $(this);
                 var type = channel.find("select option:selected").val();
-                var unit = channel.find(".node-object-channel-unit").val();
-                var name = channel.find(".node-object-channel-name").val();
+                var unit = channel.find(".node-input-channel-unit").val();
+                var name = channel.find(".node-input-channel-name").val();
 
                 node.channels.push({"name":name,"type":type,"unit":unit});
             });
