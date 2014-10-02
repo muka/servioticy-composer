@@ -1518,6 +1518,7 @@ RED.view = (function() {
         }
 
         $( "#node-input-workspace-name" ).val(ws.label);
+        $( "#node-input-workspace-key").val(ws.key);
         $( "#node-dialog-rename-workspace" ).dialog("open");
     }
 
