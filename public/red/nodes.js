@@ -109,6 +109,14 @@ RED.nodes = (function() {
             var node = getNode(id);
             if (node) {
                 nodes.splice(nodes.indexOf(node),1);
+                // If it is an stream
+                if(node._def.component == "stream") {
+                    streams.splice(streams.indexOf(node), 1);
+                }
+                // If it is a group
+                if(node._def.component == "group") {
+                    groups.splice(groups.indexOf(node), 1);
+                }
                 removedLinks = links.filter(function(l) { return (l.source === node) || (l.target === node); });
                 removedLinks.map(function(l) {links.splice(links.indexOf(l), 1); });
             }

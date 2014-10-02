@@ -1546,7 +1546,7 @@ RED.view = (function() {
                     var key = $( "#node-input-workspace-key" ).val();
                     if (workspace.label != label || workspace.key != key) {
                         workspace.label = label;
-                        workspace.key = key
+                        workspace.key = key;
                         var link = $("#workspace-tabs a[href='#"+workspace.id+"']");
                         link.attr("title",label);
                         link.text(label);
