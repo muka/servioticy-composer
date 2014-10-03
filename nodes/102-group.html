@@ -99,19 +99,19 @@
                 generateSO(i+1,so);
             }
 
-            function customDialogResize(ev,ui) {
+            function groupDialogResize(ev,ui) {
                 $("#node-input-so-container-div").css("height",(ui.size.height-260)+"px");
             };
 
-            $( "#dialog" ).on("dialogresize", customDialogResize);
+            $( "#dialog" ).on("dialogresize", groupDialogResize);
             $( "#dialog" ).one("dialogopen", function(ev) {
-                var size = $( "#dialog" ).dialog('option','sizeCache-custom');
+                var size = $( "#dialog" ).dialog('option','sizeCache-group');
                 if (size) {
-                    customDialogResize(null,{size:size});
+                    groupDialogResize(null,{size:size});
                 }
             });
             $( "#dialog" ).one("dialogclose", function(ev,ui) {
-                $( "#dialog" ).off("dialogresize",customDialogResize);
+                $( "#dialog" ).off("dialogresize",groupDialogResize);
             });
         },
         oneditsave: function() {

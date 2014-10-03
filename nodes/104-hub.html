@@ -1,0 +1,168 @@
+<!--
+  Copyright 2014 Barcelona Supercomputing Center (BSC)
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<script type="text/x-red" data-template-name="hub">
+
+    <div class="form-row">
+        <div id="node-input-channel-container-div" style="border-radius: 5px; height: 310px; padding: 5px; border: 1px solid #ccc; overflow-y:scroll;">
+        <ol id="node-input-channel-container" style=" list-style-type:none; margin: 0;">
+        </ol>
+        </div>
+        <a href="#" class="btn btn-mini" id="node-input-add-channel" style="margin-top: 4px;"><i class="icon-plus"></i> Add channel</a>
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+<script type="text/x-red" data-help-name="hub">
+    <p>The selected channels of the incoming streams are propagated.</p>
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('hub',{
+        category: 'composition',
+        component: 'stream',
+        color:"#fdd0a2",
+        defaults: {
+            name: {value:"", required: true},
+            channels: {value:[], required: true}
+        },
+        inputs:1,
+        outputs:1,
+        icon: "switch.png",
+        label: function() {
+            return this.name ||"hub";
+        },
+        labelStyle: function() {
+            return this.name?"node_label_italic":"";
+        },
+        oneditprepare: function(){
+
+            var type_names = [
+                "Number",
+                "Boolean",
+                "String",
+                "GeoPoint",
+                "Array[Number]",
+                "Array[Boolean]",
+                "Array[String]",
+                "Array[GeoPoint]"
+            ];
+            var types = [
+                "number",
+                "boolean",
+                "string",
+                "geo_point",
+                "array[number]",
+                "array[boolean]",
+                "array[string]",
+                "array[geo_point]"
+            ];
+
+            function generateChannel(i, channel){
+                var container = $('<li/>',{style:"margin:0; padding:8px 0px; border-bottom: 1px solid #ccc;"});
+                var row = $('<div/>').appendTo(container);
+                var row2 = $('<div/>',{style:"padding-top: 5px;"}).appendTo(container);
+                var row3 = $('<div/>',{style:"padding-top: 5px; text-align: right;"}).appendTo(container);
+
+                var channelField = $('<span/>').appendTo(row);
+                var nameField = $('<input/>',{placeholder:"Name",class:"node-input-channel-name",type:"text",style:"margin-left: 5px; width: 120px;"}).appendTo(channelField);
+                var selectField = $('<select/>',{style:"width:95px; margin-left: 5px; text-align: center;"}).appendTo(channelField);
+                for (var d in types) {
+                    selectField.append($("<option></option>").val(types[d]).text(type_names[d]));
+                }
+                var unitField = $('<input/>',{placeholder:"Unit",class:"node-input-channel-unit",type:"text",style:"margin-left: 5px; width: 120px;"}).appendTo(channelField);
+
+                var finalspan = $('<span/>',{style:"float: right; margin-top: 3px;margin-right: 10px;"}).appendTo(row);
+
+                channelField.show();
+
+                selectField.change(function() {
+                    var type = selectField.children("option:selected").val();
+                    if (type.length <= 7) {
+                        selectField.css({"width":"95px"});
+                    }  else {
+                        selectField.css({"width":"145px"});
+                    }
+                });
+
+                var deleteButton = $('<a/>',{href:"#",class:"btn btn-mini", style:"margin-left: 5px;"}).appendTo(finalspan);
+                $('<i/>',{class:"icon-remove"}).appendTo(deleteButton);
+
+                deleteButton.click(function() {
+                    container.css({"background":"#fee"});
+                    container.fadeOut(300, function() {
+                        $(this).remove();
+                        $("#node-input-channel-container").children().each(function(i) {
+                            $(this).find(".node-input-channel-index").html(i+1);
+                        });
+
+                    });
+                });
+
+                $("#node-input-channel-container").append(container);
+
+                selectField.find("option").filter(function() {return $(this).val() == channel.type;}).attr('selected',true);
+                unitField.val(channel.unit);
+                nameField.val(channel.name);
+                selectField.change();
+            }
+
+            $("#node-input-add-channel").click(function() {
+                generateChannel($("#node-input-channel-container").children().length+1,{name:"",type:"", "current-value":"","unit":""});
+                $("#node-input-channel-container-div").scrollTop($("#node-input-channel-container-div").get(0).scrollHeight);
+            });
+
+            for (var i=0;i<this.channels.length;i++) {
+                var channel = this.channels[i];
+                generateChannel(i+1,channel);
+            }
+
+            function hubDialogResize(ev,ui) {
+                $("#node-input-channel-container-div").css("height",(ui.size.height-260)+"px");
+            };
+
+            $( "#dialog" ).on("dialogresize", hubDialogResize);
+            $( "#dialog" ).one("dialogopen", function(ev) {
+                var size = $( "#dialog" ).dialog('option','sizeCache-hub');
+                if (size) {
+                    hubDialogResize(null,{size:size});
+                }
+            });
+            $( "#dialog" ).one("dialogclose", function(ev,ui) {
+                $( "#dialog" ).off("dialogresize",hubDialogResize);
+            });
+        },
+        oneditsave: function() {
+            var channels = $("#node-input-channel-container").children();
+            var channelset;
+            var node = this;
+            node.channels = [];
+            channels.each(function(i) {
+                var channel = $(this);
+                var type = channel.find("select option:selected").val();
+                var unit = channel.find(".node-input-channel-unit").val();
+                var fun = channel.find(".node-input-channel-function").val();
+                var name = channel.find(".node-input-channel-name").val();
+
+                node.channels.push({"name":name,"type":type,"unit":unit,"current-value":fun});
+            });
+        }
+    });
+
+</script>

@@ -26,7 +26,7 @@
     </div>
 </script>
 <script type="text/x-red" data-help-name="subscription">
-    <p>Subscription to one or several existing streams. Its output is treated as a single stream.</p>
+    <p>Subscription to one existing stream.</p>
 </script>
 
 <script type="text/javascript">
@@ -50,19 +50,19 @@
         },
         oneditprepare: function(){
             $("#node-input-so").val(this.soIds[0]);
-            function customDialogResize(ev,ui) {
+            function subscriptionDialogResize(ev,ui) {
                 $("#node-input-so-container-div").css("height",(ui.size.height-260)+"px");
             };
 
-            $( "#dialog" ).on("dialogresize", customDialogResize);
+            $( "#dialog" ).on("dialogresize", subscriptionDialogResize);
             $( "#dialog" ).one("dialogopen", function(ev) {
-                var size = $( "#dialog" ).dialog('option','sizeCache-custom');
+                var size = $( "#dialog" ).dialog('option','sizeCache-subscription');
                 if (size) {
-                    customDialogResize(null,{size:size});
+                    subscriptionDialogResize(null,{size:size});
                 }
             });
             $( "#dialog" ).one("dialogclose", function(ev,ui) {
-                $( "#dialog" ).off("dialogresize",customDialogResize);
+                $( "#dialog" ).off("dialogresize",subscriptionDialogResize);
             });
         },
         oneditsave: function() {
