@@ -409,7 +409,6 @@ RED.nodes = (function() {
 
     function normalizeType(type){
         type = type.trim().toLowerCase();
-        type = type.charAt(0).toUpperCase() + type.slice(1);
         return type;
     }
 

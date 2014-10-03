@@ -53,13 +53,25 @@
         },
         oneditprepare: function(){
 
+            var type_names = [
+                "Number",
+                "Boolean",
+                "String",
+                "GeoPoint",
+                "Array[Number]",
+                "Array[Boolean]",
+                "Array[String]",
+                "Array[GeoPoint]"
+            ];
             var types = [
-                    "Number",
-                    "Boolean",
-                    "String",
-                    "Array[Number]",
-                    "Array[Boolean]",
-                    "Array[String]"
+                "number",
+                "boolean",
+                "string",
+                "geo_point",
+                "array[number]",
+                "array[boolean]",
+                "array[string]",
+                "array[geo_point]"
             ];
 
             function generateChannel(i, channel){
@@ -72,7 +84,7 @@
                 var nameField = $('<input/>',{placeholder:"Name",class:"node-input-channel-name",type:"text",style:"margin-left: 5px; width: 120px;"}).appendTo(channelField);
                 var selectField = $('<select/>',{style:"width:95px; margin-left: 5px; text-align: center;"}).appendTo(channelField);
                 for (var d in types) {
-                    selectField.append($("<option></option>").val(types[d]).text(types[d]));
+                    selectField.append($("<option></option>").val(types[d]).text(type_names[d]));
                 }
                 var functionField = $('<textarea/>',{placeholder:"JavaScript function body",class:"node-input-channel-function",style:"margin-left: 5px; height: 100px; width: 360px;"}).appendTo(row2);
                 var unitField = $('<input/>',{placeholder:"Unit",class:"node-input-channel-unit",type:"text",style:"margin-left: 5px; width: 120px;"}).appendTo(channelField);
