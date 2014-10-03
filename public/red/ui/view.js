@@ -1473,9 +1473,11 @@ RED.view = (function() {
 
     function showExportNodesDialog() {
         mouse_mode = RED.state.EXPORT;
-        var nns = RED.nodes.createExportableNodeSet(moving_set);
+        var sos = RED.nodes.createSOs();
+        var so = sos[activeWorkspace];
+        delete so.key;
         $("#dialog-form").html($("script[data-template-name='export-clipboard-dialog']").html());
-        $("#node-input-export").val(JSON.stringify(nns));
+        $("#node-input-export").val(JSON.stringify(so,null,4));
         $("#node-input-export").focus(function() {
                 var textarea = $(this);
                 textarea.select();
