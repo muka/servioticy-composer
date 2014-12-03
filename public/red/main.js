@@ -1,5 +1,5 @@
 /**
- * Original work Copyright 2013, 2014 IBM Corp.
+ * Original work Copyright 2013 IBM Corp.
  * Modified work Copyright 2014 Barcelona Supercomputing Center (BSC)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,8 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-
-var RED = (function() {
+var RED = function() {
 
     $('#btn-keyboard-shortcuts').click(function(){showHelp();});
 
@@ -36,15 +35,15 @@ var RED = (function() {
             event.preventDefault();
         }
     })
-        .on("dragleave",function(event) {
-            hideDropTarget();
-        })
-        .on("drop",function(event) {
-            var data = event.originalEvent.dataTransfer.getData("text/plain");
-            hideDropTarget();
-            RED.view.importNodes(data);
-            event.preventDefault();
-        });
+    .on("dragleave",function(event) {
+        hideDropTarget();
+    })
+    .on("drop",function(event) {
+        var data = event.originalEvent.dataTransfer.getData("text/plain");
+        hideDropTarget();
+        RED.view.importNodes(data);
+        event.preventDefault();
+    });
 
 
     function save(force) {
@@ -120,32 +119,31 @@ var RED = (function() {
     $('#btn-deploy').click(function() { save(); });
 
     $( "#node-dialog-confirm-deploy" ).dialog({
-        title: "Confirm deploy",
-        modal: true,
-        autoOpen: false,
-        width: 530,
-        height: 230,
-        buttons: [
-            {
-                text: "Confirm deploy",
-                click: function() {
-                    save(true);
-                    $( this ).dialog( "close" );
+            title: "Confirm deploy",
+            modal: true,
+            autoOpen: false,
+            width: 530,
+            height: 230,
+            buttons: [
+                {
+                    text: "Confirm deploy",
+                    click: function() {
+                        save(true);
+                        $( this ).dialog( "close" );
+                    }
+                },
+                {
+                    text: "Cancel",
+                    click: function() {
+                        $( this ).dialog( "close" );
+                    }
                 }
-            },
-            {
-                text: "Cancel",
-                click: function() {
-                    $( this ).dialog( "close" );
-                }
-            }
-        ]
+            ]
     });
 
     function loadSettings() {
         $.get('settings', function(data) {
             RED.settings = data;
-            console.log("Node-RED: "+data.version);
             loadNodes();
         });
     }
@@ -158,7 +156,7 @@ var RED = (function() {
             RED.nodes.import([]);
             RED.view.dirty(false);
             RED.view.redraw();
-//            loadFlows();
+            //loadFlows();
         });
     }
 
@@ -178,28 +176,6 @@ var RED = (function() {
                     }
                 }
             });
-            RED.comms.subscribe("node/#",function(topic,msg) {
-                var i;
-                if (topic == "node/added") {
-                    for (i=0;i<msg.length;i++) {
-                        var m = msg[i];
-                        var id = m.id;
-                        $.get('nodes/'+id, function(data) {
-                            $("body").append(data);
-                            var typeList = "<ul><li>"+m.types.join("</li><li>")+"</li></ul>";
-                            RED.notify("Node"+(m.types.length!=1 ? "s":"")+" added to palette:"+typeList,"success");
-                        });
-                    }
-                } else if (topic == "node/removed") {
-                    if (msg.types) {
-                        for (i=0;i<msg.types.length;i++) {
-                            RED.palette.remove(msg.types[i]);
-                        }
-                        var typeList = "<ul><li>"+msg.types.join("</li><li>")+"</li></ul>";
-                        RED.notify("Node"+(msg.types.length!=1 ? "s":"")+" removed from palette:"+typeList,"success");
-                    }
-                }
-            });
         });
     }
 
@@ -211,13 +187,13 @@ var RED = (function() {
         statusEnabled = btnStatus.toggleClass("active").hasClass("active");
         RED.view.status(statusEnabled);
     }
-
+    
     function showHelp() {
 
         var dialog = $('#node-help');
 
         //$("#node-help").draggable({
-        //        handle:50 ".modal-header"
+        //        handle: ".modal-header"
         //});
 
         dialog.on('show',function() {
@@ -238,4 +214,4 @@ var RED = (function() {
 
     return {
     };
-})();
+}();

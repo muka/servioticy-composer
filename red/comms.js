@@ -35,8 +35,6 @@ function init(_server,_settings) {
 }
 
 function start() {
-
-    var webSocketKeepAliveTime = settings.webSocketKeepAliveTime || 15000;
     var path = settings.httpAdminRoot || "/";
     path = path + (path.slice(-1) == "/" ? "":"/") + "comms";
     wsServer = new ws.Server({server:server,path:path});
@@ -52,13 +50,7 @@ function start() {
             }
         });
         ws.on('message', function(data,flags) {
-            var msg = null;
-            try {
-                msg = JSON.parse(data);
-            } catch(err) {
-                util.log("[red:comms] received malformed message : "+err.toString());
-                return;
-            }
+            var msg = JSON.parse(data);
             if (msg.subscribe) {
                 handleRemoteSubscription(ws,msg.subscribe);
             }
@@ -76,15 +68,11 @@ function start() {
     
     heartbeatTimer = setInterval(function() {
         var now = Date.now();
-        if (now-lastSentTime > webSocketKeepAliveTime) {
+        if (now-lastSentTime > 15000) {
+            lastSentTime = now;
             publish("hb",lastSentTime);
         }
-    }, webSocketKeepAliveTime);
-}
-
-function stop() {
-    clearInterval(heartbeatTimer);
-    wsServer.close();
+    }, 15000);
 }
 
 function publish(topic,data,retain) {
@@ -121,6 +109,5 @@ function handleRemoteSubscription(ws,topic) {
 module.exports = {
     init:init,
     start:start,
-    stop:stop,
     publish:publish,
 }

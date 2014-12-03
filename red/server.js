@@ -1,5 +1,5 @@
 /**
- * Original work Copyright 2013, 2014 IBM Corp.
+ * Original work Copyright 2013 IBM Corp.
  * Modified work Copyright 2014 Barcelona Supercomputing Center (BSC)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,36 +41,42 @@ function createServer(_server,_settings) {
         res.send(redNodes.getNodeConfigs());
     });
     
-    app.get("/nodes/:id", function(req,res) {
-        var id = req.params.id;
-        var config = redNodes.getNodeConfig(id);
-        if (config) {
-            res.send(config);
-        } else {
-            res.send(404);
-        }
-    });
-    
+//    app.get("/flows",function(req,res) {
+//        res.json(redNodes.getFlows());
+//    });
+//    
+//    app.post("/flows",
+//        express.json(),
+//        function(req,res) {
+//            var flows = req.body;
+//            redNodes.setFlows(flows).then(function() {
+//                res.json(204);
+//            }).otherwise(function(err) {
+//                util.log("[red] Error saving flows : "+err);
+//                res.send(500,err.message);
+//            });
+//        },
+//        function(error,req,res,next) {
+//            res.send(400,"Invalid Flow");
+//        }
+//    );
 }
 
 function start() {
+    var RED = require("./red");
     var defer = when.defer();
     
     storage.init(settings).then(function() {
         console.log("\nWelcome to Node-RED\n===================\n");
-        if (settings.version) {
-            util.log("[red] Version: "+settings.version);
-        }
+        util.log("[red] Version: "+RED.version());
         util.log("[red] Loading palette nodes");
         redNodes.init(settings,storage);
-        redNodes.load().then(function() {
-            var nodes = redNodes.getNodeList();
-            var nodeErrors = nodes.filter(function(n) { return n.err!=null;});
+        redNodes.load().then(function(nodeErrors) {
             if (nodeErrors.length > 0) {
                 util.log("------------------------------------------");
                 if (settings.verbose) {
                     for (var i=0;i<nodeErrors.length;i+=1) {
-                        util.log("["+nodeErrors[i].name+"] "+nodeErrors[i].err);
+                        util.log("["+nodeErrors[i].fn+"] "+nodeErrors[i].err);
                     }
                 } else {
                     util.log("[red] Failed to register "+nodeErrors.length+" node type"+(nodeErrors.length==1?"":"s"));
@@ -79,17 +85,17 @@ function start() {
                 util.log("------------------------------------------");
             }
             defer.resolve();
+            
+//            redNodes.loadFlows();
         });
         comms.start();
-    }).otherwise(function(err) {
-        defer.reject(err);
     });
     
     return defer.promise;
 }
 
 function stop() {
-    comms.stop();
+    redNodes.stopFlows();
 }
 
 module.exports = { 

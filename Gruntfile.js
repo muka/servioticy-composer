@@ -25,11 +25,9 @@ module.exports = function(grunt) {
                     timeout: 3000,
                     ignoreLeaks: false,
                     ui: 'bdd',
-                    reporter: 'spec'
+                    reporter: 'tap'
                 },
-                all: { src: ['test/**/*_spec.js'] },
-                core: { src: ["test/_spec.js","test/red/**/*_spec.js"]},
-                nodes: { src: ["test/nodes/**/*_spec.js"]}
+                all: { src: ['test/*.js'] }
             },
             jshint: {
                 options: {
@@ -46,34 +44,14 @@ module.exports = function(grunt) {
                 },
                 all: [
                     'Gruntfile.js',
+                    'public/red/**/*.js',
                     'red.js',
                     'red/**/*.js',
                     'nodes/**/*.js',
-                    'public/red/**/*.js'
                 ],
-                
-                core: {
-                    files: {
-                        src: [
-                            'Gruntfile.js',
-                            'red.js',
-                            'red/**/*.js'
-                        ]
-                    }
-                },
-                nodes: {
-                    files: {
-                        src: [ 'nodes/**/*.js' ]
-                    }
-                },
-                editor: {
-                    files: {
-                        src: [ 'public/red/**/*.js' ]
-                    }
-                },
                 tests: {
                     files: {
-                        src: ['test/**/*.js']
+                        src: ['test/*.js']
                     },
                     options: {
                         "expr": true
@@ -86,6 +64,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-simple-mocha');
     grunt.loadNpmTasks('grunt-contrib-jshint');
     
-    grunt.registerTask('default', ['jshint:core','jshint:tests','jshint:editor','simplemocha:core','simplemocha:nodes']);
+    grunt.registerTask('default', ['jshint:tests','simplemocha']);
+    grunt.registerTask('all', ['jshint:all','default']);
     
 };

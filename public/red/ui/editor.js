@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-RED.editor = (function() {
+RED.editor = function() {
     var editing_node = null;
     // TODO: should IMPORT/EXPORT get their own dialogs?
 
@@ -22,6 +22,29 @@ RED.editor = (function() {
         return  'credentials/' + dashedType + "/" + nodeID;
     }
 
+    function sendCredentials(node,credDefinition,prefix) {
+        var credentials = {};
+        for (var cred in credDefinition) {
+            var input = $("#" + prefix + '-' + cred);
+            var value = input.val();
+            if (credDefinition[cred].type == 'password' && value == '__PWRD__') {
+                continue;
+            }
+            credentials[cred] = value;
+        }
+        node._def._creds = credentials;
+        $.ajax({
+            url: getCredentialsURL(node.type, node.id),
+            type: 'POST',
+            data: credentials,
+            success: function (result) {
+            }
+        });
+
+    }
+
+    
+    
     /**
      * Validate a node 
      * @param node - the node being validated
@@ -97,12 +120,13 @@ RED.editor = (function() {
             while (node.outputs < node.ports.length) {
                 node.ports.pop();
             }
+            var removedLinks = [];
             RED.nodes.eachLink(function(l) {
                     if (l.source === node && l.sourcePort >= node.outputs) {
                         removedLinks.push(l);
                     }
             });
-            for (var l=0;l<removedLinks.length;l++) {
+            for (var l in removedLinks) {
                 RED.nodes.removeLink(removedLinks[l]);
             }
         } else if (node.outputs > node.ports.length) {
@@ -128,17 +152,15 @@ RED.editor = (function() {
                             var changes = {};
                             var changed = false;
                             var wasDirty = RED.view.dirty();
-                            var d;
+
 
                             if (editing_node._def.oneditsave) {
                                 var oldValues = {};
-                                for (d in editing_node._def.defaults) {
-                                    if (editing_node._def.defaults.hasOwnProperty(d)) {
-                                        if (typeof editing_node[d] === "string" || typeof editing_node[d] === "number") {
-                                            oldValues[d] = editing_node[d];
-                                        } else {
-                                            oldValues[d] = $.extend(true,{},{v:editing_node[d]}).v;
-                                        }
+                                for (var d in editing_node._def.defaults) {
+                                    if (typeof editing_node[d] === "string" || typeof editing_node[d] === "number") {
+                                        oldValues[d] = editing_node[d];
+                                    } else {
+                                        oldValues[d] = $.extend(true,{},{v:editing_node[d]}).v;
                                     }
                                 }
                                 var rc = editing_node._def.oneditsave.call(editing_node);
@@ -146,18 +168,16 @@ RED.editor = (function() {
                                     changed = true;
                                 }
 
-                                for (d in editing_node._def.defaults) {
-                                    if (editing_node._def.defaults.hasOwnProperty(d)) {
-                                        if (oldValues[d] === null || typeof oldValues[d] === "string" || typeof oldValues[d] === "number") {
-                                            if (oldValues[d] !== editing_node[d]) {
-                                                changes[d] = oldValues[d];
-                                                changed = true;
-                                            }
-                                        } else {
-                                            if (JSON.stringify(oldValues[d]) !== JSON.stringify(editing_node[d])) {
-                                                changes[d] = oldValues[d];
-                                                changed = true;
-                                            }
+                                for (var d in editing_node._def.defaults) {
+                                    if (oldValues[d] === null || typeof oldValues[d] === "string" || typeof oldValues[d] === "number") {
+                                        if (oldValues[d] !== editing_node[d]) {
+                                            changes[d] = oldValues[d];
+                                            changed = true;
+                                        }
+                                    } else {
+                                        if (JSON.stringify(oldValues[d]) !== JSON.stringify(editing_node[d])) {
+                                            changes[d] = oldValues[d];
+                                            changed = true;
                                         }
                                     }
                                 }
@@ -166,37 +186,35 @@ RED.editor = (function() {
                             }
 
                             if (editing_node._def.defaults) {
-                                for (d in editing_node._def.defaults) {
-                                    if (editing_node._def.defaults.hasOwnProperty(d)) {
-                                        var input = $("#node-input-"+d);
-                                        var newValue;
-                                        if (input.attr('type') === "checkbox") {
-                                            newValue = input.prop('checked');
-                                        } else {
-                                            newValue = input.val();
-                                        }
-                                        if (newValue != null) {
-                                            if (editing_node[d] != newValue) {
-                                                if (editing_node._def.defaults[d].type) {
-                                                    if (newValue == "_ADD_") {
-                                                        newValue = "";
-                                                    }
-                                                    // Change to a related config node
-                                                    var configNode = RED.nodes.node(editing_node[d]);
-                                                    if (configNode) {
-                                                        var users = configNode.users;
-                                                        users.splice(users.indexOf(editing_node),1);
-                                                    }
-                                                    configNode = RED.nodes.node(newValue);
-                                                    if (configNode) {
-                                                        configNode.users.push(editing_node);
-                                                    }
+                                for (var d in editing_node._def.defaults) {
+                                    var input = $("#node-input-"+d);
+                                    var newValue;
+                                    if (input.attr('type') === "checkbox") {
+                                        newValue = input.prop('checked');
+                                    } else {
+                                        newValue = input.val();
+                                    }
+                                    if (newValue != null) {
+                                        if (editing_node[d] != newValue) {
+                                            if (editing_node._def.defaults[d].type) {
+                                                if (newValue == "_ADD_") {
+                                                    newValue = "";
                                                 }
-    
-                                                changes[d] = editing_node[d];
-                                                editing_node[d] = newValue;
-                                                changed = true;
+                                                // Change to a related config node
+                                                var configNode = RED.nodes.node(editing_node[d]);
+                                                if (configNode) {
+                                                    var users = configNode.users;
+                                                    users.splice(users.indexOf(editing_node),1);
+                                                }
+                                                var configNode = RED.nodes.node(newValue);
+                                                if (configNode) {
+                                                    configNode.users.push(editing_node);
+                                                }
                                             }
+
+                                            changes[d] = editing_node[d];
+                                            editing_node[d] = newValue;
+                                            changed = true;
                                         }
                                     }
                                 }
@@ -204,8 +222,7 @@ RED.editor = (function() {
                             if (editing_node._def.credentials) {
                                 var prefix = 'node-input';
                                 var credDefinition = editing_node._def.credentials;
-                                var credsChanged = updateNodeCredentials(editing_node,credDefinition,prefix);
-                                changed = changed || credsChanged;
+                                sendCredentials(editing_node,credDefinition,prefix);
                             }
 
 
@@ -229,7 +246,7 @@ RED.editor = (function() {
                                             RED.notify("Saved nodes","success");
                                     });
                                 }
-                            }
+                            };
                         } else if (RED.view.state() == RED.state.IMPORT) {
                             RED.view.importNodes($("#node-input-import").val());
                         }
@@ -341,73 +358,6 @@ RED.editor = (function() {
     }
 
     /**
-     * Assign the value to each credential field
-     * @param node
-     * @param credDef
-     * @param credData
-     * @param prefix
-     */
-    function populateCredentialsInputs(node, credDef, credData, prefix) {
-        var cred;
-        for (cred in credDef) {
-            if (credDef.hasOwnProperty(cred)) {
-                if (credDef[cred].type == 'password') {
-                    if (credData[cred]) {
-                        $('#' + prefix + '-' + cred).val(credData[cred]);
-                    } else if (credData['has_' + cred]) {
-                        $('#' + prefix + '-' + cred).val('__PWRD__');
-                    }
-                    else {
-                        $('#' + prefix + '-' + cred).val('');
-                    }
-                } else {
-                    preparePropertyEditor(credData, cred, prefix);
-                }
-                attachPropertyChangeHandler(node, credDef, cred, prefix);
-            }
-        }
-        for (cred in credDef) {
-            if (credDef.hasOwnProperty(cred)) {
-                $("#" + prefix + "-" + cred).change();
-            }
-        }
-    }
-    
-    /**
-     * Update the node credentials from the edit form
-     * @param node - the node containing the credentials
-     * @param credDefinition - definition of the credentials
-     * @param prefix - prefix of the input fields
-     * @return {boolean} whether anything has changed
-     */
-    function updateNodeCredentials(node, credDefinition, prefix) {
-        var changed = false;
-        if(!node.credentials) {
-            node.credentials = {_:{}};
-        }
-
-        for (var cred in credDefinition) {
-            if (credDefinition.hasOwnProperty(cred)) {
-                var input = $("#" + prefix + '-' + cred);
-                var value = input.val();
-                if (credDefinition[cred].type == 'password') {
-                    node.credentials['has_' + cred] = (value !== "");
-                    if (value == '__PWRD__') {
-                        continue;
-                    }
-                    changed = true;
-                    
-                }
-                if (value != node.credentials._[cred]) {
-                    node.credentials[cred] = value;
-                    changed = true;
-                }
-            }
-        }
-        return changed;
-    }
-
-    /**
      * Prepare all of the editor dialog fields
      * @param node - the node being edited
      * @param definition - the node definition
@@ -415,40 +365,39 @@ RED.editor = (function() {
      */
     function prepareEditDialog(node,definition,prefix) {
         for (var d in definition.defaults) {
-            if (definition.defaults.hasOwnProperty(d)) {
-                if (definition.defaults[d].type) {
-                    prepareConfigNodeSelect(node,d,definition.defaults[d].type);
-                } else {
-                    preparePropertyEditor(node,d,prefix);
-                }
-                attachPropertyChangeHandler(node,definition.defaults,d,prefix);
-            }
-        }
-        var completePrepare = function() {
-            if (definition.oneditprepare) {
-                definition.oneditprepare.call(node);
-            }
-            for (var d in definition.defaults) {
-                if (definition.defaults.hasOwnProperty(d)) {
-                    $("#"+prefix+"-"+d).change();
-                }
-            }
-        }
-        
-        if (definition.credentials) {
-            if (node.credentials) {
-                populateCredentialsInputs(node, definition.credentials, node.credentials, prefix);
-                completePrepare();
+            if (definition.defaults[d].type) {
+                prepareConfigNodeSelect(node,d,definition.defaults[d].type);
             } else {
-                $.getJSON(getCredentialsURL(node.type, node.id), function (data) {
-                    node.credentials = data;
-                    node.credentials._ = $.extend(true,{},data);
-                    populateCredentialsInputs(node, definition.credentials, node.credentials, prefix);
-                    completePrepare();
-                });
+                preparePropertyEditor(node,d,prefix);
             }
-        } else {
-            completePrepare();
+            attachPropertyChangeHandler(node,definition.defaults,d,prefix);
+        }
+        if (definition.credentials) {
+
+            $.getJSON(getCredentialsURL(node.type, node.id), function (data) {
+                for (var cred in definition.credentials) {
+                    if (definition.credentials[cred].type == 'password') {
+                        if (data['has' + cred]) {
+                            $('#' + prefix + '-' + cred).val('__PWRD__');
+                        }
+                        else {
+                            $('#' + prefix + '-' + cred).val('');
+                        }
+                    } else {
+                        preparePropertyEditor(data, cred, prefix);
+                    }
+                    attachPropertyChangeHandler(node, definition.credentials, cred, prefix);
+                    for (var cred in definition.credentials) {
+                        $("#" + prefix + "-" + cred).change();
+                    }
+                }
+            });
+        }
+        if (definition.oneditprepare) {
+            definition.oneditprepare.call(node);
+        }
+        for (var d in definition.defaults) {
+            $("#"+prefix+"-"+d).change();
         }
     }
 
@@ -500,14 +449,22 @@ RED.editor = (function() {
                             var configNode = RED.nodes.node(configId);
                             var configTypeDef = RED.nodes.getType(configType);
 
+                            if (configTypeDef.credentials) {
+                                $.ajax({
+                                    url: getCredentialsURL(configType, configId),
+                                    type: 'DELETE',
+                                    success: function (result) {
+                                    }
+                                });
+                            }
                             if (configTypeDef.ondelete) {
                                 configTypeDef.ondelete.call(RED.nodes.node(configId));
                             }
                             RED.nodes.remove(configId);
-                            for (var i=0;i<configNode.users.length;i++) {
+                            for (var i in configNode.users) {
                                 var user = configNode.users[i];
                                 for (var d in user._def.defaults) {
-                                    if (user._def.defaults.hasOwnProperty(d) && user[d] == configId) {
+                                    if (user[d] == configId) {
                                         user[d] = "";
                                     }
                                 }
@@ -550,7 +507,7 @@ RED.editor = (function() {
             }
         });
 
-        select.append('<option value="_ADD_"'+(value===""?" selected":"")+'>Add new '+type+'...</option>');
+        select.append('<option value="_ADD_"'+(value==""?" selected":"")+'>Add new '+type+'...</option>');
         window.setTimeout(function() { select.change();},50);
     }
 
@@ -569,14 +526,12 @@ RED.editor = (function() {
                         var configAdding = $(this).dialog('option','node-adding');
                         var configTypeDef = RED.nodes.getType(configType);
                         var configNode;
-                        var d;
-                        
+
                         if (configAdding) {
                             configNode = {type:configType,id:configId,users:[]};
-                            for (d in configTypeDef.defaults) {
-                                if (configTypeDef.defaults.hasOwnProperty(d)) {
-                                    configNode[d] = $("#node-config-input-"+d).val();
-                                }
+                            for (var d in configTypeDef.defaults) {
+                                var input = $("#node-config-input-"+d);
+                                configNode[d] = input.val();
                             }
                             configNode.label = configTypeDef.label;
                             configNode._def = configTypeDef;
@@ -584,15 +539,14 @@ RED.editor = (function() {
                             updateConfigNodeSelect(configProperty,configType,configNode.id);
                         } else {
                             configNode = RED.nodes.node(configId);
-                            for (d in configTypeDef.defaults) {
-                                if (configTypeDef.defaults.hasOwnProperty(d)) {
-                                    configNode[d] = $("#node-config-input-"+d).val();
-                                }
+                            for (var d in configTypeDef.defaults) {
+                                var input = $("#node-config-input-"+d);
+                                configNode[d] = input.val();
                             }
                             updateConfigNodeSelect(configProperty,configType,configId);
                         }
                         if (configTypeDef.credentials) {
-                            updateNodeCredentials(configNode,configTypeDef.credentials,"node-config-input");
+                            sendCredentials(configNode,configTypeDef.credentials,"node-config-input");
                         }
                         if (configTypeDef.oneditsave) {
                             configTypeDef.oneditsave.call(RED.nodes.node(configId));
@@ -650,4 +604,4 @@ RED.editor = (function() {
         validateNode: validateNode,
         updateNodeProperties: updateNodeProperties // TODO: only exposed for edit-undo
     }
-})();
+}();

@@ -14,26 +14,21 @@
  * limitations under the License.
  **/
 
-var util = require("util");
-var EventEmitter = require("events").EventEmitter;
+var should = require("should");
+var RedNodes = require("../red/nodes");
 
-var logHandlers = [];
+var RedNode = require("../red/nodes/Node");
 
-var ConsoleLogHandler = new EventEmitter();
-ConsoleLogHandler.on("log",function(msg) {
-        util.log("["+msg.level+"] ["+msg.type+":"+(msg.name||msg.id)+"] "+msg.msg);
-});
+describe('NodeRegistry', function() {
+    it('automatically registers new nodes',function() {
+        var testNode = RedNodes.getNode('123');
+        should.not.exist(n);
+        var n = new RedNode({id:'123',type:'abc'});
+        
+        var newNode = RedNodes.getNode('123');
+        
+        should.strictEqual(n,newNode);
+    });
+})
+        
 
-var log = module.exports = {
-    addHandler: function(func) {
-        logHandlers.push(func);
-    },
-    
-    log: function(msg) {
-        for (var i in logHandlers) {
-            logHandlers[i].emit("log",msg);
-        }
-    }
-}
-
-log.addHandler(ConsoleLogHandler);

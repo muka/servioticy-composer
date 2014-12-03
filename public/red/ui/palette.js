@@ -1,6 +1,5 @@
 /**
- * Original work Copyright 2013 IBM Corp.
- * Modified work Copyright 2014 Barcelona Supercomputing Center (BSC)
+ * Copyright 2013 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,114 +13,75 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-
-RED.palette = (function() {
-
-    var exclusion = ['config','unknown','deprecated'];
-    var core = ['input', 'composition'];
-    
-    function createCategoryContainer(category){
-
-        $("#palette-container").append('<div class="palette-category">'+
-            '<div id="header-'+category+'" class="palette-header"><i class="expanded icon-chevron-down"></i><span>'+category+'</span></div>'+
-            '<div class="palette-content" id="palette-base-category-'+category+'">'+
-              '<div id="palette-'+category+'-input"></div>'+
-              '<div id="palette-'+category+'-output"></div>'+
-              '<div id="palette-'+category+'-function"></div>'+
-            '</div>'+
-            '</div>');
-          
-    }
-    
-    core.forEach(createCategoryContainer);
+RED.palette = function() {
     
     function addNodeType(nt,def) {
-        
-        if ($("#palette_node_"+nt).length) {
-            return;
-        }
-        
-        if (exclusion.indexOf(def.category)===-1) {
-          
-          var category = def.category.split("-");
-          
-          var d = document.createElement("div");
-          d.id = "palette_node_"+nt;
-          d.type = nt;
-          
-          var label = /^(.*?)([ -]in|[ -]out)?$/.exec(nt)[1];
-          
-          d.innerHTML = '<div class="palette_label">'+label+"</div>";
-          d.className="palette_node";
-          if (def.icon) {
-              d.style.backgroundImage = "url(icons/"+def.icon+")";
-              if (def.align == "right") {
-                  d.style.backgroundPosition = "95% 50%";
-              } else if (def.inputs > 0) {
-                  d.style.backgroundPosition = "10% 50%";
-              }
-          }
-          
-          d.style.backgroundColor = def.color;
-          
-          if (def.outputs > 0) {
-              var portOut = document.createElement("div");
-              portOut.className = "palette_port palette_port_output";
-              d.appendChild(portOut);
-          }
-          
-          if (def.inputs > 0) {
-              var portIn = document.createElement("div");
-              portIn.className = "palette_port";
-              d.appendChild(portIn);
-          }
-          
-          if ($("#palette-base-category-"+category[0]).length === 0){
-              createCategoryContainer(category[0]);
-          }
-          
-          if ($("#palette-"+def.category).length === 0) {          
-              $("#palette-base-category-"+category[0]).append('<div id="palette-'+def.category+'"></div>');            
-          }
-          
-          $("#palette-"+def.category).append(d);
-          d.onmousedown = function(e) { e.preventDefault(); }
-          
-          $(d).popover({
-                  title:d.type,
-                  placement:"right",
-                  trigger: "hover",
-                  delay: { show: 750, hide: 50 },
-                  html: true,
-                  container:'body',
-                  content: $(($("script[data-help-name|='"+nt+"']").html()||"<p>no information available</p>").trim())[0] 
-          });
-          $(d).click(function() {
-                  var help = '<div class="node-help">'+($("script[data-help-name|='"+d.type+"']").html()||"")+"</div>";
-                  $("#tab-info").html(help);
-          });
-          $(d).draggable({
-              helper: 'clone',
-              appendTo: 'body',
-              revert: true,
-              revertDuration: 50
-          });
-         
-          $("#header-"+category[0]).off('click').on('click', function(e) {
-              $(this).next().slideToggle();
-              $(this).children("i").toggleClass("expanded");
-          });
-
+        if (def.category != 'config') {
+            var d = document.createElement("div");
+            d.id = "pn_"+nt;
+            d.type = nt;
+            
+            var label = /^(.*?)([ -]in|[ -]out)?$/.exec(nt)[1];
+            d.innerHTML = '<div class="palette_label">'+label+"</div>";
+            d.className="palette_node";
+            if (def.icon) {
+                d.style.backgroundImage = "url(icons/"+def.icon+")";
+                if (def.align == "right") {
+                    d.style.backgroundPosition = "95% 50%";
+                } else if (def.inputs > 0) {
+                    d.style.backgroundPosition = "10% 50%";
+                }
+            }
+            
+            d.style.backgroundColor = def.color;
+            
+            if (def.outputs > 0) {
+                var port = document.createElement("div");
+                port.className = "palette_port palette_port_output";
+                d.appendChild(port);
+            }
+            
+            if (def.inputs > 0) {
+                var port = document.createElement("div");
+                port.className = "palette_port";
+                d.appendChild(port);
+            }
+            
+            // TODO: add categories dynamically?
+            $("#palette-"+def.category).append(d);
+            
+            d.onmousedown = function(e) { e.preventDefault(); }
+            
+            $(d).popover({
+                    title:d.type,
+                    placement:"right",
+                    trigger: "hover",
+                    delay: { show: 750, hide: 50 },
+                    html: true,
+                    container:'body',
+                    content: $(($("script[data-help-name|='"+nt+"']").html()||"<p>no information available</p>").trim())[0] 
+            });
+            $(d).click(function() {
+                    var help = '<div class="node-help">'+($("script[data-help-name|='"+d.type+"']").html()||"")+"</div>";
+                    $("#tab-info").html(help);
+            });
+            $(d).draggable({
+                helper: 'clone',
+                appendTo: 'body',
+                revert: true,
+                revertDuration: 50
+            });
         }
     }
     
-    function removeNodeType(type) {
-        $("#palette_node_"+type).remove();
-    }
+    $(".palette-header").click(function(e) {
+        $(this).next().slideToggle();
+        $(this).children("i").toggleClass("expanded");
+    });
     
     function filterChange() {
         var val = $("#palette-search-input").val();
-        if (val === "") {
+        if (val == "") {
             $("#palette-search-clear").hide();
         } else {
             $("#palette-search-clear").show();
@@ -129,7 +89,7 @@ RED.palette = (function() {
         
         var re = new RegExp(val);
         $(".palette_node").each(function(i,el) {
-            if (val === "" || re.test(el.id)) {
+            if (val == "" || re.test(el.id)) {
                 $(this).show();
             } else {
                 $(this).hide();
@@ -163,7 +123,6 @@ RED.palette = (function() {
     });
     
     return {
-        add:addNodeType,
-        remove:removeNodeType
+        add:addNodeType
     };
-})();
+}();

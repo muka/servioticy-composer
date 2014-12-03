@@ -15,7 +15,7 @@
  **/
 
 RED.touch = RED.touch||{};
-RED.touch.radialMenu = (function() {
+RED.touch.radialMenu = function() {
     
     
     var touchMenu = null;
@@ -60,7 +60,7 @@ RED.touch.radialMenu = (function() {
                 });
                 
             var menuOpts = [];
-            var createMenuOpt = function(x,y,opt) {
+            function createMenuOpt(x,y,opt) {
                 opt.el = menu.append("div")
                     .style({
                         position: "absolute",
@@ -112,7 +112,7 @@ RED.touch.radialMenu = (function() {
             }
             
 
-            var hide = function() {
+            function hide() {
                 isActive = false;
                 activeOption = null;
                 touchMenu.remove();
@@ -182,5 +182,5 @@ RED.touch.radialMenu = (function() {
         }
     }
 
-})();
+}();
 

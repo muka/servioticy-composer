@@ -5,4 +5,3 @@ flows.backup
 *_cred*
 nodes/node-red-nodes/
 .npm
-/coverage

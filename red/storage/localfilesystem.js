@@ -60,8 +60,10 @@ function getFileMeta(root,path) {
     var fd = fs.openSync(fn,"r");
     var size = fs.fstatSync(fd).size;
     var meta = {};
+    var scanning = true;
     var read = 0;
     var length = 10;
+    var offset = 0;
     var remaining = "";
     var buffer = Buffer(length);
     while(read < size) {
@@ -91,6 +93,7 @@ function getFileBody(root,path) {
     var scanning = true;
     var read = 0;
     var length = 50;
+    var offset = 0;
     var remaining = "";
     var buffer = Buffer(length);
     while(read < size) {
@@ -118,6 +121,21 @@ function getFileBody(root,path) {
     }
     fs.closeSync(fd);
     return body;
+}
+
+function writeFile(root,path,meta,body,res) {
+    var fn = fspath.join(root,path);
+    var headers = "";
+    for (var i in meta) {
+        headers += "// "+i+": "+meta[i]+"\n";
+    }
+    mkdirp(fspath.dirname(fn), function (err) {
+        fs.writeFile(fn,headers+body,function(err) {
+            //TODO: handle error
+            res.writeHead(204, {'Content-Type': 'text/plain'});
+            res.end();
+        });
+    });
 }
 
 var localfilesystem = {
@@ -237,9 +255,7 @@ var localfilesystem = {
         var rootPath = fspath.join(libDir,type,path);
         return promiseDir(root).then(function () {
             return nodeFn.call(fs.lstat, rootPath).then(function(stats) {
-                if (stats.isFile()) {
-                    return getFileBody(root,path);
-                }
+                if (stats.isFile()) return getFileBody(root,path);
                 if (path.substr(-1) == '/') {
                     path = path.substr(0,path.length-1);
                 }
@@ -270,9 +286,7 @@ var localfilesystem = {
         var fn = fspath.join(libDir, type, path);
         var headers = "";
         for (var i in meta) {
-            if (meta.hasOwnProperty(i)) {
-                headers += "// "+i+": "+meta[i]+"\n";
-            }
+            headers += "// "+i+": "+meta[i]+"\n";
         }
         return promiseDir(fspath.dirname(fn)).then(function () {
             nodeFn.call(fs.writeFile, fn, headers+body);

@@ -44,20 +44,20 @@
                     <li class="dropdown-submenu pull-left"><a tabindex="-1" href="#"><i class="icon-edit"></i> Import from...</a>
                         <ul class="dropdown-menu">
                             <li><a id="btn-import" tabindex="-1" href="#"><i class="icon-edit"></i> Clipboard...</a></li>
-                            <li id="flow-menu-parent" class="dropdown-submenu disabled pull-left">
+                            <li id="flow-menu-parent" class="dropdown-submenu pull-left">
                                 <a tabindex="-1" href="#"><i class="icon-book"></i> Library</a>
                                 <ul class="dropdown-menu"></ul>
                             </li>
                         </ul>
                     </li>
-                    <li id="li-menu-export" class="dropdown-submenu  pull-left"><a tabindex="-1" href="#"><i class="icon-share"></i> Export to...</a>
+                    <li id="li-menu-export" class="dropdown-submenu disabled pull-left"><a tabindex="-1" href="#"><i class="icon-share"></i> Export to...</a>
                         <ul class="dropdown-menu">
-                            <li id="li-menu-export-clipboard"><a id="btn-export-clipboard" tabindex="-1" href="#"><i class="icon-share"></i> Clipboard...</a></li>
+                            <li id="li-menu-export-clipboard" class="disabled"><a id="btn-export-clipboard" tabindex="-1" href="#"><i class="icon-share"></i> Clipboard...</a></li>
                             <li id="li-menu-export-library" class="disabled"><a id="btn-export-library" tabindex="-1" href="#"><i class="icon-book"></i> Library...</a></li>
                         </ul>
                     </li>
                     <li class="divider"></li>
-                    <li class="disabled"><a id="btn-config-nodes" tabindex="-1" href="#"><i class="icon-th-list"></i> Configuration nodes...</a></li>
+                    <li><a id="btn-config-nodes" tabindex="-1" href="#"><i class="icon-th-list disabled"></i> Configuration nodes...</a></li>
                     <li class="divider"></li>
                     <li class="dropdown-submenu pull-left"><a tabindex="-1" href="#"><i class="icon-th-large"></i> Service Objects</a>
                         <ul id="workspace-menu-list" class="dropdown-menu">
@@ -75,16 +75,21 @@
             <div class="btn-group pull-right">
                 <a id="btn-deploy" class="btn action-deploy disabled" href="#"><i id="btn-icn-deploy" class="icon-upload"></i> Deploy</a>
             </div>
-            <!--<div class="btn-group pull-right">-->
-                <!--<a id="btn-retrieve" class="btn action-retrieve enabled" href="#">Retrieve</a>-->
-            <!--</div>-->
         </div>
     </div>
 </div>
 <div id="main-container" class="sidebar-closed">
     <div id="palette">
         <img src="spin.svg" class="palette-spinner"/>
-        <div id="palette-container" class="palette-scroll">
+        <div class="palette-scroll">
+            <div class="palette-category">
+                <div class="palette-header"><i class="expanded icon-chevron-down"></i><span>inputs</span></div>
+                <div class="palette-content" id="palette-input"></div>
+            </div>
+            <div class="palette-category">
+                <div class="palette-header"><i class="expanded icon-chevron-down"></i><span>functions</span></div>
+                <div class="palette-content" id="palette-function"></div>
+            </div>
         </div>
         <div id="palette-search">
             <i class="icon-search"></i><input id="palette-search-input" type="text" placeholder="filter"><a href="#" id="palette-search-clear"><i class="icon-remove"></i></a></input>
@@ -235,14 +240,6 @@
         <div class="form-row">
             <label for="node-input-workspace-key" >API Key:</label>
             <input type="text" id="node-input-workspace-key">
-        </div>
-    </form>
-</div>
-<div id="node-dialog-retrieve-so" class="hide">
-    <form class="form-horizontal">
-        <div class="form-row">
-            <label for="node-input-so-id" ><i class="icon-tag"></i> ID:</label>
-            <input type="text" id="node-input-so-id">
         </div>
     </form>
 </div>

@@ -184,9 +184,6 @@ RED.start().then(function() {
     } else {
         util.log('[red] Running in headless mode');
     }
-}).otherwise(function(err) {
-    util.log("[red] Failed to start server:");
-    util.log(err.stack);
 });
 
 

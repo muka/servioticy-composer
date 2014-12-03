@@ -14,62 +14,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-
 var registry = require("./registry");
 var credentials = require("./credentials");
+var flows = require("./flows");
+var Node = require("./Node");
 
-/**
- * Registers a node constructor
- * @param type - the string type name
- * @param constructor - the constructor function for this node type
- * @param opts - optional additional options for the node
- */
+
+function createNode(node,def) {
+    Node.call(node,def);
+}
 
 function init(_settings,storage) {
     credentials.init(storage);
+    //flows.init(storage);
     registry.init(_settings);
 }
 
 
-function removeNode(info) {
-    var nodeInfo = registry.getNodeInfo(info);
-    if (!nodeInfo) {
-        throw new Error("Unrecognised type/id: "+info);
-    }
-    var inUse = {};
-    flows.each(function(n) {
-        inUse[n.type] = (inUse[n.type]||0)+1;
-    });
-    var nodesInUse = [];
-    nodeInfo.types.forEach(function(t) {
-        if (inUse[t]) {
-            nodesInUse.push(t);
-        }
-    });
-    if (nodesInUse.length > 0) {
-        var msg = nodesInUse.join(", ");
-        throw new Error("Type in use: "+msg);
-    }
-    return registry.removeNode(nodeInfo.id);
-}
-
 module.exports = {
-    // Lifecycle
     init: init,
     load: registry.load,
-
-    addNode: registry.addNode,
-    removeNode: removeNode,
-
-    getType: registry.get,
-    getNodeList: registry.getNodeList,
-    getNodeConfigs: registry.getNodeConfigs,
-    getNodeConfig: registry.getNodeConfig,
-    clearRegistry: registry.clear,
-    
-    // Credentials
     addCredentials: credentials.add,
     getCredentials: credentials.get,
-    deleteCredentials: credentials.delete
+    deleteCredentials: credentials.delete,
+    createNode: createNode,
+    registerType: registry.registerType,
+    getType: registry.get,
+    getNodeConfigs: registry.getNodeConfigs,
+    getNode: flows.get,
+    
+    loadFlows: flows.load,
+    stopFlows: flows.stopFlows,
+    setFlows: flows.setFlows,
+    getFlows: flows.getFlows
 }
 
