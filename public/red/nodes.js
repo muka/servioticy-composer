@@ -363,7 +363,143 @@ RED.nodes = function() {
         return type;
     }
 
-    function importNodes(so,createNewIds) {
+    function importNodes(newNodesObj,createNewIds) {
+        try {
+            var newNodes;
+            if (typeof newNodesObj === "string") {
+                if (newNodesObj == "") {
+                    return;
+                }
+                newNodes = JSON.parse(newNodesObj);
+            } else {
+                newNodes = newNodesObj;
+            }
+
+            if (!$.isArray(newNodes)) {
+                newNodes = [newNodes];
+            }
+            var unknownTypes = [];
+            for (var i=0;i<newNodes.length;i++) {
+                var n = newNodes[i];
+                // TODO: remove workspace in next release+1
+                if (n.type != "workspace" && n.type != "tab" && !getType(n.type)) {
+                    // TODO: get this UI thing out of here! (see below as well)
+                    n.name = n.type;
+                    n.type = "unknown";
+                    if (unknownTypes.indexOf(n.name)==-1) {
+                        unknownTypes.push(n.name);
+                    }
+                    if (n.x == null && n.y == null) {
+                        // config node - remove it
+                        newNodes.splice(i,1);
+                        i--;
+                    }
+                }
+            }
+            if (unknownTypes.length > 0) {
+                var typeList = "<ul><li>"+unknownTypes.join("</li><li>")+"</li></ul>";
+                var type = "type"+(unknownTypes.length > 1?"s":"");
+                RED.notify("<strong>Imported unrecognised "+type+":</strong>"+typeList,"error",false,10000);
+                //"DO NOT DEPLOY while in this state.<br/>Either, add missing types to Node-RED, restart and then reload page,<br/>or delete unknown "+n.name+", rewire as required, and then deploy.","error");
+            }
+
+            for (var i in newNodes) {
+                var n = newNodes[i];
+                // TODO: remove workspace in next release+1
+                if (n.type === "workspace" || n.type === "tab") {
+                    if (n.type === "workspace") {
+                        n.type = "tab";
+                    }
+                    if (defaultWorkspace == null) {
+                        defaultWorkspace = n;
+                    }
+                    addWorkspace(n);
+                    RED.view.addWorkspace(n);
+                }
+            }
+            if (defaultWorkspace == null) {
+                defaultWorkspace = { type:"tab", id:getID(), label:"Service Object 1" };
+                addWorkspace(defaultWorkspace);
+                RED.view.addWorkspace(defaultWorkspace);
+            }
+
+            var node_map = {};
+            var new_nodes = [];
+            var new_links = [];
+
+            for (var i in newNodes) {
+                var n = newNodes[i];
+                // TODO: remove workspace in next release+1
+                if (n.type !== "workspace" && n.type !== "tab") {
+                    var def = getType(n.type);
+                    if (def && def.category == "config") {
+                        if (!RED.nodes.node(n.id)) {
+                            var configNode = {id:n.id,type:n.type,users:[]};
+                            for (var d in def.defaults) {
+                                configNode[d] = n[d];
+                            }
+                            configNode.label = def.label;
+                            configNode._def = def;
+                            RED.nodes.add(configNode);
+                        }
+                    } else {
+                        var node = {x:n.x,y:n.y,z:n.z,type:0,wires:n.wires,changed:false};
+                        if (createNewIds) {
+                            node.z = RED.view.getWorkspace();
+                            node.id = getID();
+                        } else {
+                            node.id = n.id;
+                            if (node.z == null || !workspaces[node.z]) {
+                                node.z = RED.view.getWorkspace();
+                            }
+                        }
+                        node.type = n.type;
+                        node._def = def;
+                        if (!node._def) {
+                            node._def = {
+                                color:"#fee",
+                                defaults: {},
+                                label: "unknown: "+n.type,
+                                labelStyle: "node_label_italic",
+                                outputs: n.outputs||n.wires.length
+                            }
+                        }
+                        node.outputs = n.outputs||node._def.outputs;
+
+                        for (var d in node._def.defaults) {
+                            node[d] = n[d];
+                        }
+
+                        addNode(node);
+                        RED.editor.validateNode(node);
+                        node_map[n.id] = node;
+                        new_nodes.push(node);
+                    }
+                }
+            }
+            for (var i in new_nodes) {
+                var n = new_nodes[i];
+                for (var w1 in n.wires) {
+                    var wires = (n.wires[w1] instanceof Array)?n.wires[w1]:[n.wires[w1]];
+                    for (var w2 in wires) {
+                        if (wires[w2] in node_map) {
+                            var link = {source:n,sourcePort:w1,target:node_map[wires[w2]]};
+                            addLink(link);
+                            new_links.push(link);
+                        }
+                    }
+                }
+                delete n.wires;
+            }
+            return [new_nodes,new_links];
+        } catch(error) {
+            //TODO: get this UI thing out of here! (see above as well)
+            RED.notify("<strong>Error</strong>: "+error,"error");
+            return null;
+        }
+
+    }
+    function importSO(so,createNewIds) {
         try {
             var i;
             var sources = {};
@@ -545,6 +681,7 @@ RED.nodes = function() {
             }
         },
         node: getNode,
+        importSO: importSO,
         import: importNodes,
         refreshValidation: refreshValidation,
         getAllFlowNodes: getAllFlowNodes,

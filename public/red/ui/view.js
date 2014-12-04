@@ -920,7 +920,7 @@ RED.view = function() {
         options.push({name:"delete",disabled:(moving_set.length==0),onselect:function() {deleteSelection();}});
         options.push({name:"cut",disabled:(moving_set.length==0),onselect:function() {copySelection();deleteSelection();}});
         options.push({name:"copy",disabled:(moving_set.length==0),onselect:function() {copySelection();}});
-        options.push({name:"paste",disabled:(clipboard.length==0),onselect:function() {importNodes(clipboard,true);}});
+        options.push({name:"paste",disabled:(clipboard.length==0),onselect:function() {pasteNodes(clipboard,true);}});
         options.push({name:"edit",disabled:(moving_set.length != 1),onselect:function() { RED.editor.edit(mdn);}});
         options.push({name:"select",onselect:function() {selectAll();}});
         options.push({name:"undo",disabled:(RED.history.depth() == 0),onselect:function() {RED.history.pop();}});
@@ -1360,7 +1360,7 @@ RED.view = function() {
     RED.keyboard.add(/* = */ 187,{ctrl:true},function(){zoomIn();d3.event.preventDefault();});
     RED.keyboard.add(/* - */ 189,{ctrl:true},function(){zoomOut();d3.event.preventDefault();});
     RED.keyboard.add(/* 0 */ 48,{ctrl:true},function(){zoomZero();d3.event.preventDefault();});
-    RED.keyboard.add(/* v */ 86,{ctrl:true},function(){importNodes(clipboard);d3.event.preventDefault();});
+    RED.keyboard.add(/* v */ 86,{ctrl:true},function(){pasteNodes(clipboard);d3.event.preventDefault();});
     RED.keyboard.add(/* e */ 69,{ctrl:true},function(){showExportNodesDialog();d3.event.preventDefault();});
     RED.keyboard.add(/* i */ 73,{ctrl:true},function(){showImportNodesDialog();d3.event.preventDefault();});
 
@@ -1382,7 +1382,7 @@ RED.view = function() {
      */
     function importNodes(newNodesStr,touchImport) {
         try {
-            var result = RED.nodes.import(newNodesStr,true);
+            var result = RED.nodes.importSO(newNodesStr,true);
             if (result) {
                 var new_nodes = result[0];
                 var new_links = result[1];
@@ -1428,6 +1428,75 @@ RED.view = function() {
                         clearSelection();
                         RED.history.pop();
                         mouse_mode = 0;
+                });
+
+                RED.history.push({t:'add',nodes:new_node_ids,links:new_links,dirty:RED.view.dirty()});
+
+                clearSelection();
+                moving_set = new_ms;
+
+                redraw();
+            }
+        } catch(error) {
+            console.log(error);
+            RED.notify("<strong>Error</strong>: "+error,"error");
+        }
+    }
+
+    /**
+     * Imports a new collection of nodes from a JSON String.
+     *  - all get new IDs assigned
+     *  - all 'selected'
+     *  - attached to mouse for placing - 'IMPORT_DRAGGING'
+     */
+    function pasteNodes(newNodesStr,touchImport) {
+        try {
+            var result = RED.nodes.import(newNodesStr,true);
+            if (result) {
+                var new_nodes = result[0];
+                var new_links = result[1];
+                var new_ms = new_nodes.map(function(n) { n.z = activeWorkspace; return {n:n};});
+                var new_node_ids = new_nodes.map(function(n){ return n.id; });
+
+                // TODO: pick a more sensible root node
+                var root_node = new_ms[0].n;
+                var dx = root_node.x;
+                var dy = root_node.y;
+
+                if (mouse_position == null) {
+                    mouse_position = [0,0];
+                }
+
+                var minX = 0;
+                var minY = 0;
+
+                for (var i in new_ms) {
+                    var node = new_ms[i];
+                    node.n.selected = true;
+                    node.n.changed = true;
+                    node.n.x -= dx - mouse_position[0];
+                    node.n.y -= dy - mouse_position[1];
+                    node.dx = node.n.x - mouse_position[0];
+                    node.dy = node.n.y - mouse_position[1];
+                    minX = Math.min(node.n.x-node_width/2-5,minX);
+                    minY = Math.min(node.n.y-node_height/2-5,minY);
+                }
+                for (var i in new_ms) {
+                    var node = new_ms[i];
+                    node.n.x -= minX;
+                    node.n.y -= minY;
+                    node.dx -= minX;
+                    node.dy -= minY;
+                }
+                if (!touchImport) {
+                    mouse_mode = RED.state.IMPORT_DRAGGING;
+                }
+
+                RED.keyboard.add(/* ESCAPE */ 27,function(){
+                    RED.keyboard.remove(/* ESCAPE */ 27);
+                    clearSelection();
+                    RED.history.pop();
+                    mouse_mode = 0;
                 });
 
                 RED.history.push({t:'add',nodes:new_node_ids,links:new_links,dirty:RED.view.dirty()});
@@ -1613,6 +1682,7 @@ RED.view = function() {
             }
         },
         importNodes: importNodes,
+        pasteNodes: pasteNodes,
         resize: function() {
             workspace_tabs.resize();
         },

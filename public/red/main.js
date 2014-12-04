@@ -153,7 +153,7 @@ var RED = function() {
             $(".palette-spinner").hide();
             $(".palette-scroll").show();
             $("#palette-search").show();
-            RED.nodes.import({name:"Service Object 1"});
+            RED.nodes.import([]);
             RED.view.dirty(false);
             RED.view.redraw();
             //loadFlows();
@@ -162,7 +162,7 @@ var RED = function() {
 
     function loadFlows() {
         $.getJSON("flows",function(nodes) {
-            RED.nodes.import(nodes);
+            RED.nodes.importSO(nodes);
             RED.view.dirty(false);
             RED.view.redraw();
             RED.comms.subscribe("status/#",function(topic,msg) {
