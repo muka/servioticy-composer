@@ -153,7 +153,7 @@ var RED = function() {
             $(".palette-spinner").hide();
             $(".palette-scroll").show();
             $("#palette-search").show();
-            RED.nodes.import([]);
+            RED.nodes.import({name:"Service Object 1"});
             RED.view.dirty(false);
             RED.view.redraw();
             //loadFlows();
