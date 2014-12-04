@@ -496,7 +496,7 @@ RED.nodes = function() {
                 new_nodes.push(sn);
             }
             for (i=0;i<new_nodes.length;i++) {
-                so = new_nodes[i];
+                var so = new_nodes[i];
                 for (var w1=0;w1<so.wires.length;w1++) {
                     var wires = (so.wires[w1] instanceof Array)?so.wires[w1]:[so.wires[w1]];
                     for (var w2=0;w2<wires.length;w2++) {
