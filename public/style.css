@@ -67,6 +67,7 @@ a.brand img {
     z-index: 100 !important;
 }
 .navbar-inner > .container-fluid {
+    background: #FFFFF1;
     padding-right: 10px;
 }
 
