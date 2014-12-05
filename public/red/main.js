@@ -179,14 +179,14 @@ var RED = function() {
         });
     }
 
-    $('#btn-node-status').click(function() {toggleStatus();});
-
-    var statusEnabled = false;
-    function toggleStatus() {
-        var btnStatus = $("#btn-node-status");
-        statusEnabled = btnStatus.toggleClass("active").hasClass("active");
-        RED.view.status(statusEnabled);
-    }
+    //$('#btn-node-status').click(function() {toggleStatus();});
+    //
+    //var statusEnabled = false;
+    //function toggleStatus() {
+    //    var btnStatus = $("#btn-node-status");
+    //    statusEnabled = btnStatus.toggleClass("active").hasClass("active");
+    //    RED.view.status(statusEnabled);
+    //}
     
     function showHelp() {
 

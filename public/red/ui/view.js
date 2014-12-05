@@ -628,15 +628,15 @@ RED.view = function() {
     }
 
     function updateSelection() {
-        if (moving_set.length == 0) {
-            $("#li-menu-export").addClass("disabled");
-            $("#li-menu-export-clipboard").addClass("disabled");
-            $("#li-menu-export-library").addClass("disabled");
-        } else {
-            $("#li-menu-export").removeClass("disabled");
-            $("#li-menu-export-clipboard").removeClass("disabled");
-            $("#li-menu-export-library").removeClass("disabled");
-        }
+        //if (moving_set.length == 0) {
+        //    //$("#li-menu-export").addClass("disabled");
+        //    //$("#li-menu-export-clipboard").addClass("disabled");
+        //    //$("#li-menu-export-library").addClass("disabled");
+        //} else {
+        //    $("#li-menu-export").removeClass("disabled");
+        //    $("#li-menu-export-clipboard").removeClass("disabled");
+        //    $("#li-menu-export-library").removeClass("disabled");
+        //}
         if (moving_set.length == 0 && selected_link == null) {
             RED.keyboard.remove(/* backspace */ 8);
             RED.keyboard.remove(/* delete */ 46);
@@ -1514,7 +1514,7 @@ RED.view = function() {
 
     $('#btn-import').click(function() {showImportNodesDialog();});
     $('#btn-export-clipboard').click(function() {showExportNodesDialog();});
-    $('#btn-export-library').click(function() {showExportNodesLibraryDialog();});
+    //$('#btn-export-library').click(function() {showExportNodesLibraryDialog();});
 
     function showExportNodesDialog() {
         mouse_mode = RED.state.EXPORT;
@@ -1534,14 +1534,14 @@ RED.view = function() {
         $( "#dialog" ).dialog("option","title","Export nodes to clipboard").dialog( "open" );
         $("#node-input-export").focus();
     }
-
-    function showExportNodesLibraryDialog() {
-        mouse_mode = RED.state.EXPORT;
-        var nns = RED.nodes.createExportableNodeSet(moving_set);
-        $("#dialog-form").html($("script[data-template-name='export-library-dialog']").html());
-        $("#node-input-filename").attr('nodes',JSON.stringify(nns));
-        $( "#dialog" ).dialog("option","title","Export nodes to library").dialog( "open" );
-    }
+    //
+    //function showExportNodesLibraryDialog() {
+    //    mouse_mode = RED.state.EXPORT;
+    //    var nns = RED.nodes.createExportableNodeSet(moving_set);
+    //    $("#dialog-form").html($("script[data-template-name='export-library-dialog']").html());
+    //    $("#node-input-filename").attr('nodes',JSON.stringify(nns));
+    //    $( "#dialog" ).dialog("option","title","Export nodes to library").dialog( "open" );
+    //}
 
     function showImportNodesDialog() {
         mouse_mode = RED.state.IMPORT;
