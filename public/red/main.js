@@ -85,7 +85,7 @@ var RED = function() {
                 key = sos[soid].key;
                 delete sos[soid].key;
                 $.ajax({
-                    url:"http://api.servioticy.com/",
+                    url:"http://127.0.0.1:8080/",
                     type: "POST",
                     data: JSON.stringify(sos[soid]),
                     contentType: "application/json; charset=utf-8",
