@@ -597,9 +597,12 @@ RED.nodes = function() {
                             n=-1
                         }
                         if(n == -1){
-                            n = new_groups.findIndex(function(g){
-                                return g.name == nname;
-                            });
+                            for(ng in new_groups){
+                                if(new_groups[ng].name == nname){
+                                    n = ng;
+                                    break;
+                                }
+                            }
                             if(n == -1){
                                 continue;
                             }
